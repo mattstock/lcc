@@ -115,6 +115,7 @@ fi
 if test $# -gt 0 -a "xx$1" != "xx"
 then
     TARGET=$1
+    os=`uname -s || echo UNKNOWN-OS`
 else
     # Try to set TARGET and HOST automatically based on uname output
     os=`uname -s || echo UNKNOWN-OS`
@@ -390,6 +391,7 @@ then
     echo ========== Installing gcc link ...
     TMPDIRNAME=/tmp/lcc.dirname.$$
     dirname `find /usr/lib/gcc-lib/*/[0-9]* /usr/local/lib/gcc-lib/*/[0-9]* -name cpp 2>/dev/null | head -1` >$TMPDIRNAME
+    echo "/usr/lib/gcc/x86_64-linux-gnu/4.8/32" > $TMPDIRNAME
     echo Using gcc release from `cat $TMPDIRNAME`
     if test -h $INSTALLLIBDIR/gcc
     then
