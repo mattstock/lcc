@@ -333,58 +333,48 @@ con1: CNSTU1  "1"  range(a,1,1)
 con1: CNSTU2  "1"  range(a,1,1)
 con1: CNSTU4  "1"  range(a,1,1)
 
-con16: CNSTI1 "%a" imm16(a)
-con16: CNSTI2 "%a" imm16(a)
-con16: CNSTI4 "%a" imm16(a)
-con16: CNSTU1 "%a" range(a, 0, 0xffff)
-con16: CNSTU2 "%a" range(a, 0, 0xffff)
-con16: CNSTU4 "%a" range(a, 0, 0xffff)
+con: CNSTI1 "%a"
+con: CNSTI2 "%a"
+con: CNSTI4 "%a"
+con: CNSTU1 "%a"
+con: CNSTU2 "%a"
+con: CNSTU4 "%a"
 
-con32: CNSTI4 "%a" range(a, -2147483648, 2147483647)
-con32: CNSTU4 "%a" range(a, 0, 0xffffffff)
+con: CNSTI4 "%a"
+con: CNSTU4 "%a"
 
 reg: ADDI4(reg, con1)  "inc %0\n"
 reg: ADDU4(reg, con1)  "inc %0\n"
 reg: SUBI4(reg, con1)  "dec %0\n"
 reg: SUBU4(reg, con1)  "dec %0\n"
 
-reg: ADDI4(reg, con32)  "add.l %0, %1\n"    2    
-reg: ADDI4(reg, con16)  "add.i %0, %1\n"    1
-reg: ADDI4(reg, reg)    "add %c ,%0, %1\n"  
-reg: ADDU4(reg, con32)  "add.l %0, %1\n"    2
-reg: ADDU4(reg, con16)  "add.i %0, %1\n"    1
-reg: ADDU4(reg, reg)    "add %c, %0, %1\n"
-reg: SUBI4(reg, con32)  "sub.l %0, %1\n"    2
-reg: SUBI4(reg, con16)  "sub.i %0, %1\n"    1
-reg: SUBI4(reg, reg)    "sub %c, %0, %1\n"
-reg: SUBU4(reg, con32)  "sub.l %0, %1\n"    2
-reg: SUBU4(reg, con16)  "sub.i %0, %1\n"    1
-reg: SUBU4(reg, reg)    "sub %c, %0, %1\n"
-reg: ADDP4(reg, reg)    "ADDP4(reg,reg) %c,%0,%1\n"  1
-reg: SUBP4(reg, reg)    "SUBP4(reg,reg) %c,%0,%1\n"  1
+reg: ADDI4(reg, con)  "add %0, %1\n"    1
+reg: ADDI4(reg, reg)  "add %c, %0, %1\n"  
+reg: ADDU4(reg, con)  "add %0, %1\n"    1
+reg: ADDU4(reg, reg)  "add %c, %0, %1\n"
+reg: SUBI4(reg, con)  "sub %0, %1\n"    1
+reg: SUBI4(reg, reg)  "sub %c, %0, %1\n"
+reg: SUBU4(reg, con)  "sub %0, %1\n"    1
+reg: SUBU4(reg, reg)  "sub %c, %0, %1\n"
+reg: ADDP4(reg, reg)  "add %c, %0, %1\n"  1
+reg: SUBP4(reg, reg)  "sub %c, %0, %1\n"  1
 
-reg: BANDI4(reg, con32) "and.l %0, %1\n"   2
-reg: BANDI4(reg, con16) "and.i %0, %1\n"   1
-reg: BANDI4(reg, reg)   "and %c, %0, %1\n"
-reg: BANDU4(reg, con32) "and.l %0, %1\n"   2
-reg: BANDU4(reg, con16) "and.i %0, %1\n"   1
-reg: BANDU4(reg, reg)   "and %c,%0, %1\n"
-reg: BXORI4(reg, con32) "xor.l %0, %1\n"   2
-reg: BXORI4(reg, con16) "xor.i %0, %1\n"   1
-reg: BXORI4(reg,reg)    "xor %c,%0,%1\n"   
-reg: BXORU4(reg, con32) "xor.l %0, %1\n"   2
-reg: BXORU4(reg, con16) "xor.i %0, %1\n"   1
-reg: BXORU4(reg, reg)   "xor %c, %0, %1\n"
-reg: BORU4(reg, con32)  "or.l %0, %1\n"    2
-reg: BORU4(reg, con16)  "or.i %0, %1\n"    1
-reg: BORU4(reg, reg)    "or %c, %0, %1\n" 
-reg: BORI4(reg, con32)  "or.l %0, %1\n"    2
-reg: BORI4(reg, con16)  "or.i %0, %1\n"    1
-reg: BORI4(reg, reg)    "or %c, %0, %1\n"
-reg: LSHI4(reg, reg)    "lsl %0, %1\n" 
-reg: LSHU4(reg, reg)    "lsl %0, %1\n"  
-reg: RSHI4(reg,reg)     "asr %0, %1\n" 
-reg: RSHU4(reg,reg)     "lsr %0, %1\n"  
+reg: BANDI4(reg, con) "and %0, %1\n"   1
+reg: BANDI4(reg, reg) "and %c, %0, %1\n"
+reg: BANDU4(reg, con) "and %0, %1\n"   1
+reg: BANDU4(reg, reg) "and %c,%0, %1\n"
+reg: BXORI4(reg, con) "xor %0, %1\n"   1
+reg: BXORI4(reg,reg)  "xor %c,%0,%1\n"   
+reg: BXORU4(reg, con) "xor %0, %1\n"   1
+reg: BXORU4(reg, reg) "xor %c, %0, %1\n"
+reg: BORU4(reg, con)  "or %0, %1\n"    1
+reg: BORU4(reg, reg)  "or %c, %0, %1\n" 
+reg: BORI4(reg, con)  "or %0, %1\n"    1
+reg: BORI4(reg, reg)  "or %c, %0, %1\n"
+reg: LSHI4(reg, reg)  "lsl %0, %1\n" 
+reg: LSHU4(reg, reg)  "lsl %0, %1\n"  
+reg: RSHI4(reg,reg)   "asr %0, %1\n" 
+reg: RSHU4(reg,reg)   "lsr %0, %1\n"  
 
 reg: LOADI1(reg)  "mov %c,%0\n"  move(a)
 reg: LOADI2(reg)  "mov %c,%0\n"  move(a)
@@ -394,28 +384,29 @@ reg: LOADU2(reg)  "mov %c,%0\n"  move(a)
 reg: LOADU4(reg)  "mov %c,%0\n"  move(a)
 reg: LOADP4(reg)  "mov %c,%0\n"  move(a)
 
-addr16: con16     "%0"
 addr: ADDRGP4     "%a"
-addr: addr16      "%0"
-addr: con32       "ACON32(%0)"
+addr: reg         "(%0)"
 
-reg: con32             "ld.l %c, %0\n" 1
-reg: con16             "ld.i %c, %0\n"
-reg: INDIRI1(addr)     "ld %c, %0\n" 2
-reg: INDIRI2(addr)     "ld %c, %0\n" 2
-reg: INDIRI4(addr)     "ld %c, %0\n" 2
-reg: INDIRU4(addr)     "ld %c, %0\n" 2
-reg: addr              "ld %c, %0\n" 3
+reg: con               "ldi %c, %0\n"
+reg: INDIRI1(addr)     "ld.b %c, %0\n" 1
+reg: INDIRU1(addr)     "ld.b %c, %0\n" 1
+reg: INDIRI2(addr)     "ld %c, %0\n"   1
+reg: INDIRU2(addr)     "ld %c, %0\n"   1
+reg: INDIRI4(addr)     "ld.l %c, %0\n" 1
+reg: INDIRU4(addr)     "ld.l %c, %0\n" 1
+reg: INDIRP4(addr)     "ld.l %c, %0\n" 1 
+reg: addr              "ld %c, %0\n"   1
 
 reg: CVII4(reg) "# extend\n" 2
 
 stmt: reg  ""
-stmt: ASGNI1(addr, reg) "st %1, %0\n"
+stmt: ASGNI1(addr, reg) "st.b %1, %0\n"
+stmt: ASGNU1(addr, reg) "st.b %1, %0\n"
 stmt: ASGNI2(addr, reg) "st %1, %0\n"  
-stmt: ASGNI4(addr, reg) "st %1, %0\n" 
 stmt: ASGNU2(addr, reg) "st %1, %0\n"  
-stmt: ASGNU4(addr, reg) "st %1, %0\n" 
-stmt: ASGNP4(addr, reg) "st %1, %0\n"
+stmt: ASGNI4(addr, reg) "st.l %1, %0\n" 
+stmt: ASGNU4(addr, reg) "st.l %1, %0\n" 
+stmt: ASGNP4(addr, reg) "st.l %1, %0\n"
 
 stmt: NEI4(reg, reg) "cmp %0, %1\nbne %a\n"
 stmt: NEU4(reg, reg) "cmp %0, %1\nbne %a\n"
@@ -763,7 +754,7 @@ static void address(Symbol q, Symbol p, long n) {
 /* TODO */
 static void global(Symbol p) {
         globalend();
-        print(".align %d\n", p->type->align > 4 ? 4 : p->type->align);
+        print(".align %d\n", p->type->align > 2 ? 2 : p->type->align);
         if (!p->generated) {
                 print(".type %s,@%s\n", p->x.name,
                         isfunc(p->type) ? "function" : "object");
@@ -774,9 +765,9 @@ static void global(Symbol p) {
         }
         if (p->u.seg == BSS) {
                 if (p->sclass == STATIC)
-                        print(".lcomm %s,%d\n", p->x.name, p->type->size);
-                else
                         print(".comm %s,%d\n", p->x.name, p->type->size);
+                else
+                        print(".lcomm %s,%d\n", p->x.name, p->type->size);
         } else {
                 print("%s:\n", p->x.name);
         }
