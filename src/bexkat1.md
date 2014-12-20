@@ -332,6 +332,7 @@ con1: CNSTI4  "1"  range(a,1,1)
 con1: CNSTU1  "1"  range(a,1,1)
 con1: CNSTU2  "1"  range(a,1,1)
 con1: CNSTU4  "1"  range(a,1,1)
+con1: CNSTP4  "1"  range(a,1,1)
 
 con: CNSTI1 "%a"
 con: CNSTI2 "%a"
@@ -339,9 +340,7 @@ con: CNSTI4 "%a"
 con: CNSTU1 "%a"
 con: CNSTU2 "%a"
 con: CNSTU4 "%a"
-
-con: CNSTI4 "%a"
-con: CNSTU4 "%a"
+con: CNSTP4 "%a"
 
 reg: ADDI4(reg, con1)  "inc %0\n"
 reg: ADDU4(reg, con1)  "inc %0\n"
@@ -720,7 +719,7 @@ static void defsymbol(Symbol p) {
         else if (p->generated)
                 p->x.name = stringf(".LC%s", p->name);
         else if (p->scope == GLOBAL || p->sclass == EXTERN)
-                p->x.name = stringf("%s", p->name);
+                p->x.name = stringf("_%s", p->name);
         else
                 p->x.name = p->name;
 }
