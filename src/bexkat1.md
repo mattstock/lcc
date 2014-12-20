@@ -340,17 +340,17 @@ reg: BANDI4(reg, reg) "and %c, %0, %1\n"
 reg: BANDU4(reg, con) "and %0, %1\n"   1
 reg: BANDU4(reg, reg) "and %c,%0, %1\n"
 reg: BXORI4(reg, con) "xor %0, %1\n"   1
-reg: BXORI4(reg,reg)  "xor %c,%0,%1\n"   
+reg: BXORI4(reg, reg) "xor %c,%0,%1\n"   
 reg: BXORU4(reg, con) "xor %0, %1\n"   1
 reg: BXORU4(reg, reg) "xor %c, %0, %1\n"
 reg: BORU4(reg, con)  "or %0, %1\n"    1
 reg: BORU4(reg, reg)  "or %c, %0, %1\n" 
 reg: BORI4(reg, con)  "or %0, %1\n"    1
 reg: BORI4(reg, reg)  "or %c, %0, %1\n"
-reg: LSHI4(reg, reg)  "lsl %0, %1\n" 
-reg: LSHU4(reg, reg)  "lsl %0, %1\n"  
-reg: RSHI4(reg,reg)   "asr %0, %1\n" 
-reg: RSHU4(reg,reg)   "lsr %0, %1\n"  
+reg: LSHI4(reg, reg)  "lsl %c, %0, %1\n" 
+reg: LSHU4(reg, reg)  "lsl %c, %0, %1\n"  
+reg: RSHI4(reg, reg)  "asr %c, %0, %1\n" 
+reg: RSHU4(reg, reg)  "lsr %c, %0, %1\n"  
 
 reg: LOADI1(reg)  "mov %c,%0\n"  move(a)
 reg: LOADI2(reg)  "mov %c,%0\n"  move(a)
