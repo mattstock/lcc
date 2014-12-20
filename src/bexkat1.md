@@ -1,20 +1,8 @@
 %{
-#define INTTMP 0x0100ff00
-#define INTVAR 0x40ff0000
-#define FLTTMP 0x000f0ff0
-#define FLTVAR 0xfff00000
-
-#define INTRET 0x00000004
-#define FLTRET 0x00000003
-
-#define readsreg(p) \
-        (generic((p)->op)==INDIR && (p)->kids[0]->op==VREG+P)
-#define setsrc(d) ((d) && (d)->x.regnode && \
-        (d)->x.regnode->set == src->x.regnode->set && \
-        (d)->x.regnode->mask&src->x.regnode->mask)
-
-#define relink(a, b) ((b)->x.prev = (a), (a)->x.next = (b))
-
+#define INTTMP 0x7fff0000
+#define INTVAR 0x0000ffff
+#define FLTTMP 0xffff0000
+#define FLTVAR 0x0000ffff
 #include "c.h"
 #define NODEPTR_TYPE Node
 #define OP_LABEL(p) ((p)->op)
@@ -46,16 +34,13 @@ static void progend(void);
 static void segment(int);
 static void space(int);
 static void target(Node);
-static int      bitcount       (unsigned);
-static Symbol   argreg         (int, int, int, int, int);
+static int bitcount(unsigned);
+static Symbol argreg(int, int, int, int, int);
 
-static Symbol ireg[32], freg2[32], d6;
+static Symbol ireg[32], freg2[32];
 static Symbol iregw, freg2w;
-static int tmpregs[] = {3, 9, 10};
 static Symbol blkreg;
 static Symbol prevg;
-
-static int gnum = 8;
 
 static int cseg;
 %}
@@ -318,14 +303,6 @@ stmt: ASGNI4(VREGP,reg)  "# write register\n"
 stmt: ASGNU4(VREGP,reg)  "# write register\n"
 stmt: ASGNP4(VREGP,reg)  "# write register\n"
 
-reg: CNSTI1  "# reg\n"  range(a, 0, 0)
-reg: CNSTU1  "# reg\n"  range(a, 0, 0)
-reg: CNSTU2  "# reg\n"  range(a, 0, 0)
-reg: CNSTI2  "# reg\n"  range(a, 0, 0)
-reg: CNSTI4  "# reg\n"  range(a, 0, 0)
-reg: CNSTU4  "# reg\n"  range(a, 0, 0)
-reg: CNSTP4  "# reg\n"  range(a, 0, 0)
-
 con1: CNSTI1  "1"  range(a,1,1)
 con1: CNSTI2  "1"  range(a,1,1)
 con1: CNSTI4  "1"  range(a,1,1)
@@ -399,27 +376,31 @@ reg: addr              "ld %c, %0\n"   1
 reg: CVII4(reg) "# extend\n" 2
 
 stmt: reg  ""
-stmt: ASGNI1(addr, reg) "st.b %1, %0\n"
-stmt: ASGNU1(addr, reg) "st.b %1, %0\n"
-stmt: ASGNI2(addr, reg) "st %1, %0\n"  
-stmt: ASGNU2(addr, reg) "st %1, %0\n"  
-stmt: ASGNI4(addr, reg) "st.l %1, %0\n" 
-stmt: ASGNU4(addr, reg) "st.l %1, %0\n" 
-stmt: ASGNP4(addr, reg) "st.l %1, %0\n"
+stmt: ASGNI1(addr, reg) "st.b %1, %0\n" 1
+stmt: ASGNU1(addr, reg) "st.b %1, %0\n" 1
+stmt: ASGNI2(addr, reg) "st %1, %0\n"   1
+stmt: ASGNU2(addr, reg) "st %1, %0\n"   1
+stmt: ASGNI4(addr, reg) "st.l %1, %0\n" 1
+stmt: ASGNU4(addr, reg) "st.l %1, %0\n" 1
+stmt: ASGNP4(addr, reg) "st.l %1, %0\n" 1
+
+stmt: JUMPV(addr) "jmp %0\n"  2
 
 stmt: NEI4(reg, reg) "cmp %0, %1\nbne %a\n"
 stmt: NEU4(reg, reg) "cmp %0, %1\nbne %a\n"
 stmt: EQI4(reg, reg) "cmp %0, %1\nbeq %a\n"
 stmt: EQU4(reg, reg) "cmp %0, %1\nbeq %a\n"
 stmt: LTI4(reg, reg) "cmp %0, %1\nblt %a\n"
-stmt: LTU4(reg, reg) "cmp %0, %1\nbltu %a\n"
+stmt: LTU4(reg, reg) "cmp %0, %1\nblt %a\n"
 stmt: LEI4(reg, reg) "cmp %0, %1\nble %a\n"
-stmt: LEU4(reg, reg) "cmp %0, %1\nbleu %a\n"
+stmt: LEU4(reg, reg) "cmp %0, %1\nble %a\n"
 stmt: GEI4(reg, reg) "cmp %0, %1\nbge %a\n"
-stmt: GEU4(reg, reg) "cmp %0, %1\nbgeu %a\n"
+stmt: GEU4(reg, reg) "cmp %0, %1\nbge %a\n"
 stmt: GTI4(reg, reg) "cmp %0, %1\nbgt %a\n"
-stmt: GTU4(reg, reg) "cmp %0, %1\nbgtu %a\n"
+stmt: GTU4(reg, reg) "cmp %0, %1\nbgt %a\n"
 stmt: LABELV  "%a:\n"
+
+stmt: ARGP4(reg) "# arg\n" 1
 %%
 
 /* MAYBE OK */
@@ -436,17 +417,15 @@ static void progbeg(int argc, char *argv[]) {
                 swap = ((int)(u.i == 1)) != IR->little_endian;
         }
         parseflags(argc, argv);
-        for (i = 0; i < 31; i += 2)
-                freg2[i] = mkreg("r%d", i, 3, FREG);
+        for (i = 0; i < 32; i++)
+                freg2[i] = mkreg("r%d", i, 1, FREG);
         for (i = 0; i < 32; i++)
                 ireg[i]  = mkreg("r%d", i, 1, IREG);
         ireg[31]->x.name = "sp";
-        d6 = mkreg("6", 6, 3, IREG);
         freg2w = mkwildcard(freg2);
         iregw = mkwildcard(ireg);
         tmask[IREG] = INTTMP; tmask[FREG] = FLTTMP;
         vmask[IREG] = INTVAR; vmask[FREG] = FLTVAR;
-        blkreg = mkreg("8", 8, 7, IREG);
 }
 
 /* OK */
@@ -480,46 +459,6 @@ static void progend(void) {
 /* TODO */
 static void target(Node p) {
         assert(p);
-        switch (specific(p->op)) {
-        case CNST+I: case CNST+U: case CNST+P:
-                if (range(p, 0, 0) == 0) {
-                        setreg(p, ireg[0]);
-                        p->x.registered = 1;
-                }
-                break;
-        case CALL+V:
-                rtarget(p, 0, ireg[25]);
-                break;
-        case CALL+F:
-                rtarget(p, 0, ireg[25]);
-                setreg(p, freg2[0]);
-                break;
-        case CALL+I: case CALL+P: case CALL+U:
-                rtarget(p, 0, ireg[25]);
-                setreg(p, ireg[2]);
-                break;
-        case RET+F:
-                rtarget(p, 0, freg2[0]);
-                break;
-        case RET+I: case RET+U: case RET+P:
-                rtarget(p, 0, ireg[2]);
-                break;
-        case ARG+F: case ARG+I: case ARG+P: case ARG+U: {
-                static int ty0;
-                int ty = optype(p->op);
-                Symbol q;
-
-                q = argreg(p->x.argno, p->syms[2]->u.c.v.i, ty, opsize(p->op), ty0);
-                if (p->x.argno == 0)
-                        ty0 = ty;
-                if (q &&
-                !(ty == F && q->x.regnode->set == IREG))
-                        rtarget(p, 0, q);
-                break;
-                }
-        case ASGN+B: rtarget(p->kids[1], 0, blkreg); break;
-        case ARG+B:  rtarget(p->kids[0], 0, blkreg); break;
-        }
 }
 
 /* TODO */
@@ -527,63 +466,22 @@ static void clobber(Node p) {
         assert(p);
         switch (specific(p->op)) {
         case CALL+F:
-                spill(INTTMP | INTRET, IREG, p);
-                spill(FLTTMP,          FREG, p);
+                spill(INTTMP, IREG, p);
+                spill(FLTTMP, FREG, p);
                 break;
         case CALL+I: case CALL+P: case CALL+U:
-                spill(INTTMP,          IREG, p);
-                spill(FLTTMP | FLTRET, FREG, p);
+                spill(INTTMP, IREG, p);
+                spill(FLTTMP, FREG, p);
                 break;
         case CALL+V:
-                spill(INTTMP | INTRET, IREG, p);
-                spill(FLTTMP | FLTRET, FREG, p);
+                spill(INTTMP, IREG, p);
+                spill(FLTTMP, FREG, p);
                 break;
         }
 }
 
 /* TODO */
 static void emit2(Node p) {
-        int dst, n, src, sz, ty;
-        static int ty0;
-        Symbol q;
-
-        switch (specific(p->op)) {
-        case ARG+F: case ARG+I: case ARG+P: case ARG+U:
-                ty = optype(p->op);
-                sz = opsize(p->op);
-                if (p->x.argno == 0)
-                        ty0 = ty;
-                q = argreg(p->x.argno, p->syms[2]->u.c.v.i, ty, sz, ty0);
-                src = getregnum(p->x.kids[0]);
-                if (q == NULL && ty == F && sz == 4)
-                        print("s.s $f%d,%d($sp)\n", src, p->syms[2]->u.c.v.i);
-                else if (q == NULL && ty == F)
-                        print("s.d $f%d,%d($sp)\n", src, p->syms[2]->u.c.v.i);
-                else if (q == NULL)
-                        print("sw $%d,%d($sp)\n", src, p->syms[2]->u.c.v.i);
-                else if (ty == F && sz == 4 && q->x.regnode->set == IREG)
-                        print("mfc1 $%d,$f%d\n", q->x.regnode->number, src);
-                else if (ty == F && q->x.regnode->set == IREG)
-                        print("mfc1.d $%d,$f%d\n", q->x.regnode->number, src);
-                break;
-        case ASGN+B:
-                dalign = salign = p->syms[1]->u.c.v.i;
-                blkcopy(getregnum(p->x.kids[0]), 0,
-                        getregnum(p->x.kids[1]), 0,
-                        p->syms[0]->u.c.v.i, tmpregs);
-                break;
-        case ARG+B:
-                dalign = 4;
-                salign = p->syms[1]->u.c.v.i;
-                blkcopy(29, p->syms[2]->u.c.v.i,
-                        getregnum(p->x.kids[0]), 0,
-                        p->syms[0]->u.c.v.i, tmpregs);
-                n   = p->syms[2]->u.c.v.i + p->syms[0]->u.c.v.i;
-                dst = p->syms[2]->u.c.v.i;
-                for ( ; dst <= 12 && dst < n; dst += 4)
-                        print("lw $%d,%d($sp)\n", (dst/4)+4, dst);
-                break;
-        }
 }
 
 /* TODO */
@@ -591,12 +489,6 @@ static Symbol argreg(int argno, int offset, int ty, int sz, int ty0) {
         assert((offset&3) == 0);
         if (offset > 12)
                 return NULL;
-        else if (argno == 0 && ty == F)
-                return freg2[12];
-        else if (argno == 1 && ty == F && ty0 == F)
-                return freg2[14];
-        else if (argno == 1 && ty == F && sz == 8)
-                return d6;  /* Pair! */
         else
                 return ireg[(offset/4) + 4];
 }
@@ -619,7 +511,7 @@ static void local(Symbol p) {
         if (askregvar(p, rmap(ttob(p->type))) == 0) {
                 assert(p->sclass == AUTO);
                 offset = roundup(offset + p->type->size,
-                            p->type->align < 4 ? 4 : p->type->align);
+                            p->type->align < 2 ? 2 : p->type->align);
                 p->x.offset = -offset;
                 
                 p->x.name = stringd(-offset);
