@@ -1,6 +1,6 @@
 %{
-#define INTTMP 0x7fff0000
-#define INTVAR 0x0000ffff
+#define INTTMP 0x3fff0000
+#define INTVAR 0x00007fff
 #define FLTTMP 0xffff0000
 #define FLTVAR 0x0000ffff
 #include "c.h"
@@ -36,6 +36,10 @@ static void space(int);
 static void target(Node);
 static int bitcount(unsigned);
 static Symbol argreg(int, int, int, int, int);
+static int regop(Node, int);
+static int sametree(Node, Node);
+
+#define hasargs(p) (p->syms[0] && p->syms[0]->u.c.v.i > 0 ? 0 : LBURG_MAX)
 
 static Symbol ireg[32], freg2[32];
 static Symbol iregw, freg2w;
@@ -311,6 +315,13 @@ con1: CNSTU2  "1"  range(a,1,1)
 con1: CNSTU4  "1"  range(a,1,1)
 con1: CNSTP4  "1"  range(a,1,1)
 
+con16: CNSTI1 "%a"
+con16: CNSTI2 "%a" imm16(a)
+con16: CNSTI4 "%a" imm16(a)
+con16: CNSTU1 "%a"
+con16: CNSTU2 "%a" range(a,0,65534)
+con16: CNSTU4 "%a" range(a,0,65534)
+
 con: CNSTI1 "%a"
 con: CNSTI2 "%a"
 con: CNSTI4 "%a"
@@ -319,38 +330,37 @@ con: CNSTU2 "%a"
 con: CNSTU4 "%a"
 con: CNSTP4 "%a"
 
-reg: ADDI4(reg, con1)  "inc %0\n"
-reg: ADDU4(reg, con1)  "inc %0\n"
-reg: SUBI4(reg, con1)  "dec %0\n"
-reg: SUBU4(reg, con1)  "dec %0\n"
+reg: ADDI4(reg, con16)  "add %c, %0, %1\n" 5
+reg: ADDI4(reg, reg)    "add %c, %0, %1\n" 4
+reg: ADDU4(reg, con16)  "add %c, %0, %1\n" 5
+reg: ADDU4(reg, reg)    "add %c, %0, %1\n" 4
+reg: SUBI4(reg, con16)  "sub %c, %0, %1\n" 5
+reg: SUBI4(reg, reg)    "sub %c, %0, %1\n" 4
+reg: SUBU4(reg, con16)  "sub %c, %0, %1\n" 5
+reg: SUBU4(reg, reg)    "sub %c, %0, %1\n" 4
+reg: ADDP4(reg, reg)    "add %c, %0, %1\n" 4
+reg: SUBP4(reg, reg)    "sub %c, %0, %1\n" 4
 
-reg: ADDI4(reg, con)  "add %0, %1\n"    1
-reg: ADDI4(reg, reg)  "add %c, %0, %1\n"  
-reg: ADDU4(reg, con)  "add %0, %1\n"    1
-reg: ADDU4(reg, reg)  "add %c, %0, %1\n"
-reg: SUBI4(reg, con)  "sub %0, %1\n"    1
-reg: SUBI4(reg, reg)  "sub %c, %0, %1\n"
-reg: SUBU4(reg, con)  "sub %0, %1\n"    1
-reg: SUBU4(reg, reg)  "sub %c, %0, %1\n"
-reg: ADDP4(reg, reg)  "add %c, %0, %1\n"  1
-reg: SUBP4(reg, reg)  "sub %c, %0, %1\n"  1
-
-reg: BANDI4(reg, con) "and %0, %1\n"   1
-reg: BANDI4(reg, reg) "and %c, %0, %1\n"
-reg: BANDU4(reg, con) "and %0, %1\n"   1
-reg: BANDU4(reg, reg) "and %c,%0, %1\n"
-reg: BXORI4(reg, con) "xor %0, %1\n"   1
-reg: BXORI4(reg, reg) "xor %c,%0,%1\n"   
-reg: BXORU4(reg, con) "xor %0, %1\n"   1
-reg: BXORU4(reg, reg) "xor %c, %0, %1\n"
-reg: BORU4(reg, con)  "or %0, %1\n"    1
-reg: BORU4(reg, reg)  "or %c, %0, %1\n" 
-reg: BORI4(reg, con)  "or %0, %1\n"    1
-reg: BORI4(reg, reg)  "or %c, %0, %1\n"
-reg: LSHI4(reg, reg)  "lsl %c, %0, %1\n" 
-reg: LSHU4(reg, reg)  "lsl %c, %0, %1\n"  
-reg: RSHI4(reg, reg)  "asr %c, %0, %1\n" 
-reg: RSHU4(reg, reg)  "lsr %c, %0, %1\n"  
+reg: BANDI4(reg, con16) "and %c, %0, %1\n" 5
+reg: BANDI4(reg, reg)   "and %c, %0, %1\n" 4
+reg: BANDU4(reg, con16) "and %c, %0, %1\n" 5
+reg: BANDU4(reg, reg)   "and %c, %0, %1\n" 4
+reg: BXORI4(reg, con16) "xor %c, %0, %1\n" 5
+reg: BXORI4(reg, reg)   "xor %c, %0, %1\n" 4 
+reg: BXORU4(reg, con16) "xor %c, %0, %1\n" 5
+reg: BXORU4(reg, reg)   "xor %c, %0, %1\n" 4
+reg: BORI4(reg, con16)  "or %c %0, %1\n"   5
+reg: BORI4(reg, reg)    "or %c, %0, %1\n"  4
+reg: BORU4(reg, con16)  "or %c, %0, %1\n"  5
+reg: BORU4(reg, reg)    "or %c, %0, %1\n"  4
+reg: LSHI4(reg, con16)  "lsl %c, %0, %1\n" 5
+reg: LSHI4(reg, reg)    "lsl %c, %0, %1\n" 4
+reg: LSHU4(reg, con16)  "lsl %c, %0, %1\n" 5
+reg: LSHU4(reg, reg)    "lsl %c, %0, %1\n" 4 
+reg: RSHI4(reg, con16)  "asr %c, %0, %1\n" 5
+reg: RSHI4(reg, reg)    "asr %c, %0, %1\n" 4
+reg: RSHU4(reg, con16)  "lsr %c, %0, %1\n" 5
+reg: RSHU4(reg, reg)    "lsr %c, %0, %1\n" 4 
 
 reg: LOADI1(reg)  "mov %c,%0\n"  move(a)
 reg: LOADI2(reg)  "mov %c,%0\n"  move(a)
@@ -360,20 +370,27 @@ reg: LOADU2(reg)  "mov %c,%0\n"  move(a)
 reg: LOADU4(reg)  "mov %c,%0\n"  move(a)
 reg: LOADP4(reg)  "mov %c,%0\n"  move(a)
 
-addr: ADDRGP4     "%a"
-addr: reg         "(%0)"
+acon: ADDRGP4          "%a"
+addr: acon             "%0"
+addr: reg              "0(%0)"
+addr: ADDI4(reg, acon) "%1(%0)"
+addr: ADDU4(reg, acon) "%1(%0)"
+addr: ADDP4(reg, acon) "%1(%0)"
+addr: ADDRFP4          "%a(r30)"
+addr: ADDRLP4          "%a(r30)"
 
-reg: con               "ldi %c, %0\n"
-reg: INDIRI1(addr)     "ld.b %c, %0\n" 1
-reg: INDIRU1(addr)     "ld.b %c, %0\n" 1
-reg: INDIRI2(addr)     "ld %c, %0\n"   1
-reg: INDIRU2(addr)     "ld %c, %0\n"   1
-reg: INDIRI4(addr)     "ld.l %c, %0\n" 1
-reg: INDIRU4(addr)     "ld.l %c, %0\n" 1
-reg: INDIRP4(addr)     "ld.l %c, %0\n" 1 
-reg: addr              "ld %c, %0\n"   1
+reg: con               "ldi %c, %0\n"  5
+reg: INDIRI1(addr)     "ld.b %c, %0\n" 4
+reg: INDIRU1(addr)     "ld.b %c, %0\n" 4
+reg: INDIRI2(addr)     "ld %c, %0\n"   4
+reg: INDIRU2(addr)     "ld %c, %0\n"   4
+reg: INDIRI4(addr)     "ld.l %c, %0\n" 4
+reg: INDIRU4(addr)     "ld.l %c, %0\n" 4
+reg: INDIRP4(addr)     "ld.l %c, %0\n" 4 
+reg: addr              "ld %c, %0\n"   4
 
 reg: CVII4(reg) "# extend\n" 2
+reg: CVUI4(reg) "# nop\n" 2
 
 stmt: reg  ""
 stmt: ASGNI1(addr, reg) "st.b %1, %0\n" 1
@@ -383,6 +400,37 @@ stmt: ASGNU2(addr, reg) "st %1, %0\n"   1
 stmt: ASGNI4(addr, reg) "st.l %1, %0\n" 1
 stmt: ASGNU4(addr, reg) "st.l %1, %0\n" 1
 stmt: ASGNP4(addr, reg) "st.l %1, %0\n" 1
+
+stmt: ASGNI4(VREGP, ADDI4(reg, con16)) "add %0, %1\n" regop(a,3)
+stmt: ASGNU4(VREGP, ADDU4(reg, con16)) "add %0, %1\n" regop(a,3)
+stmt: ASGNI4(VREGP, SUBI4(reg, con16)) "sub %0, %1\n" regop(a,3)
+stmt: ASGNU4(VREGP, SUBU4(reg, con16)) "sub %0, %1\n" regop(a,3)
+
+stmt: ASGNI4(VREGP, ADDI4(reg, con1)) "inc %0\n" regop(a,0)
+stmt: ASGNI4(VREGP, ADDU4(reg, con1)) "inc %0\n" regop(a,0)
+stmt: ASGNU4(VREGP, ADDU4(reg, con1)) "inc %0\n" regop(a,0)
+stmt: ASGNP4(VREGP, ADDP4(reg, con1)) "inc %0\n" regop(a,0)
+stmt: ASGNI4(VREGP, SUBI4(reg, con1)) "dec %0\n" regop(a,0)
+stmt: ASGNI4(VREGP, SUBU4(reg, con1)) "dec %0\n" regop(a,0)
+stmt: ASGNU4(VREGP, SUBU4(reg, con1)) "dec %0\n" regop(a,0)
+stmt: ASGNP4(VREGP, SUBP4(reg, con1)) "dec %0\n" regop(a,0)
+
+stmt: ARGU4(reg) "push %0\n"
+
+reg: CALLI4(addr) "jsr %0\nadd r31, %a\n" hasargs(a)
+reg: CALLI4(addr) "jsr %0\n"                 1
+reg: CALLU4(addr) "jsr %0\nadd r31, %a\n" hasargs(a)
+reg: CALLU4(addr) "jsr %0\n"                 1
+reg: CALLP4(addr) "jsr %0\nadd r31, %a\n" hasargs(a)
+reg: CALLP4(addr) "jsr %0\n"                 1
+
+stmt: CALLV(addr) "jsr %0\nadd r31, %a\n" hasargs(a)
+stmt: CALLV(addr) "jsr %0\n"                 1
+
+stmt: RETI4(reg)  "# ret\n"
+stmt: RETU4(reg)  "# ret\n"
+stmt: RETF4(reg)  "# ret\n"
+stmt: RETP4(reg)  "# ret\n"
 
 stmt: JUMPV(addr) "jmp %0\n"  2
 
@@ -421,7 +469,6 @@ static void progbeg(int argc, char *argv[]) {
                 freg2[i] = mkreg("r%d", i, 1, FREG);
         for (i = 0; i < 32; i++)
                 ireg[i]  = mkreg("r%d", i, 1, IREG);
-        ireg[31]->x.name = "sp";
         freg2w = mkwildcard(freg2);
         iregw = mkwildcard(ireg);
         tmask[IREG] = INTTMP; tmask[FREG] = FLTTMP;
@@ -458,7 +505,20 @@ static void progend(void) {
 
 /* TODO */
 static void target(Node p) {
-        assert(p);
+  assert(p);
+  switch (specific(p->op)) {
+    case CALL+I:
+    case CALL+U:
+    case CALL+P:
+    case CALL+V:
+      setreg(p, ireg[15]);
+      break;
+    case RET+I:
+    case RET+U:
+    case RET+P:
+      rtarget(p, 0, ireg[15]);
+      break;
+  }
 }
 
 /* TODO */
@@ -498,6 +558,24 @@ static int imm16(Node p) {
         return range(p, -32766, 32767);
 }
 
+static int regop(Node p, int w) {
+       assert(p);
+       assert(p->kids[0]);
+       assert(p->kids[1]);
+       if (generic(p->kids[1]->kids[0]->op) == INDIR &&
+	   sametree(p->kids[0], p->kids[1]->kids[0]->kids[0]))
+	 return w;
+       else
+	 return LBURG_MAX;
+}
+
+static int sametree(Node p, Node q) {
+  return p == NULL && q == NULL
+    || p && q && p->op == q->op && p->syms[0] == q->syms[0]
+    && sametree(p->kids[0], q->kids[0])
+    && sametree(p->kids[1], q->kids[1]);
+}
+
 /* TODO */
 static void doarg(Node p) {
         assert(p && p->syms[0]);
@@ -527,10 +605,10 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
 	print(".align 2\n");
 	print(".type %s,@function\n", f->x.name);
 	print("%s:\n", f->x.name);
+	print("push r30\n");
 
         usedmask[0] = usedmask[1] = 0;
         freemask[0] = freemask[1] = ~(unsigned)0;
-        offset = maxoffset = 0;
         for (i = 0; callee[i]; i++) {
                 Symbol p = callee[i];
                 Symbol q = caller[i];
@@ -538,20 +616,27 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
                 offset = roundup(offset, q->type->align);
                 p->x.offset = q->x.offset = offset;
                 p->x.name = q->x.name = stringd(offset);
-                offset += roundup(q->type->size, 4);
+                offset += roundup(q->type->size, 2);
 		p->sclass = q->sclass = AUTO;
         }
         assert(caller[i] == 0);
         offset = maxoffset = 0;
+
         gencode(caller, callee);
-        framesize = roundup(maxoffset, 4);
+
+	print("mov r30, r31\n");
+
+        framesize = roundup(maxoffset, 2);
         if (framesize > 0) {
-	  print("allocate %d on stack for frame\n", framesize);
+	  print("sub r31, %d\n", framesize);
         }
+
         emitcode();
-        if (framesize > 0)
-                print("deallocate %d from stack?\n", framesize);
+
+	print("mov r31, r30\n");
+	print("pop r30\n");
         print("rts\n");
+
         { int l = genlabel(1);
           print(".Lf%d:\n", l);
           print(".size %s,.Lf%d-%s\n", f->x.name, l, f->x.name);
@@ -732,7 +817,7 @@ Interface bexkat1IR = {
         1,  /* wants_argb */
         1,  /* left_to_right */
         0,  /* wants_dag */
-        0,  /* unsigned_char */
+        1,  /* unsigned_char */
         address,
         blockbeg,
         blockend,
