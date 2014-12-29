@@ -376,8 +376,8 @@ addr: reg              "0(%0)"
 addr: ADDI4(reg, acon) "%1(%0)"
 addr: ADDU4(reg, acon) "%1(%0)"
 addr: ADDP4(reg, acon) "%1(%0)"
-addr: ADDRFP4          "%a(r30)"
-addr: ADDRLP4          "%a(r30)"
+addr: ADDRFP4          "%a(%%30)"
+addr: ADDRLP4          "%a(%%30)"
 
 reg: con               "ldi %c, %0\n"  5
 reg: INDIRI1(addr)     "ld.b %c, %0\n" 4
@@ -417,14 +417,14 @@ stmt: ASGNP4(VREGP, SUBP4(reg, con1)) "dec %0\n" regop(a,0)
 
 stmt: ARGU4(reg) "push %0\n"
 
-reg: CALLI4(addr) "jsr %0\nadd r31, %a\n" hasargs(a)
+reg: CALLI4(addr) "jsr %0\nadd %%31, %a\n" hasargs(a)
 reg: CALLI4(addr) "jsr %0\n"                 1
-reg: CALLU4(addr) "jsr %0\nadd r31, %a\n" hasargs(a)
+reg: CALLU4(addr) "jsr %0\nadd %%31, %a\n" hasargs(a)
 reg: CALLU4(addr) "jsr %0\n"                 1
-reg: CALLP4(addr) "jsr %0\nadd r31, %a\n" hasargs(a)
+reg: CALLP4(addr) "jsr %0\nadd %%31, %a\n" hasargs(a)
 reg: CALLP4(addr) "jsr %0\n"                 1
 
-stmt: CALLV(addr) "jsr %0\nadd r31, %a\n" hasargs(a)
+stmt: CALLV(addr) "jsr %0\nadd %%31, %a\n" hasargs(a)
 stmt: CALLV(addr) "jsr %0\n"                 1
 
 stmt: RETI4(reg)  "# ret\n"
@@ -466,9 +466,9 @@ static void progbeg(int argc, char *argv[]) {
         }
         parseflags(argc, argv);
         for (i = 0; i < 32; i++)
-                freg2[i] = mkreg("r%d", i, 1, FREG);
+                freg2[i] = mkreg("%%%d", i, 1, FREG);
         for (i = 0; i < 32; i++)
-                ireg[i]  = mkreg("r%d", i, 1, IREG);
+                ireg[i]  = mkreg("%%%d", i, 1, IREG);
         freg2w = mkwildcard(freg2);
         iregw = mkwildcard(ireg);
         tmask[IREG] = INTTMP; tmask[FREG] = FLTTMP;
@@ -605,7 +605,7 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
 	print(".align 2\n");
 	print(".type %s,@function\n", f->x.name);
 	print("%s:\n", f->x.name);
-	print("push r30\n");
+	print("push %%30\n");
 
         usedmask[0] = usedmask[1] = 0;
         freemask[0] = freemask[1] = ~(unsigned)0;
@@ -624,17 +624,17 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
 
         gencode(caller, callee);
 
-	print("mov r30, r31\n");
+	print("mov %%30, %%31\n");
 
         framesize = roundup(maxoffset, 2);
         if (framesize > 0) {
-	  print("sub r31, %d\n", framesize);
+	  print("sub %%31, %d\n", framesize);
         }
 
         emitcode();
 
-	print("mov r31, r30\n");
-	print("pop r30\n");
+	print("mov %%31, %%30\n");
+	print("pop %%30\n");
         print("rts\n");
 
         { int l = genlabel(1);
@@ -696,7 +696,7 @@ static void defsymbol(Symbol p) {
         else if (p->generated)
                 p->x.name = stringf(".LC%s", p->name);
         else if (p->scope == GLOBAL || p->sclass == EXTERN)
-                p->x.name = stringf("_%s", p->name);
+                p->x.name = stringf("%s", p->name);
         else
                 p->x.name = p->name;
 }
