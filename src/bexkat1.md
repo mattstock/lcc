@@ -340,6 +340,9 @@ reg: SUBU4(reg, reg)    "sub %c, %0, %1\n" 4
 reg: ADDP4(reg, reg)    "add %c, %0, %1\n" 4
 reg: SUBP4(reg, reg)    "sub %c, %0, %1\n" 4
 
+reg: BCOMU4(reg) "neg %c, %0\n" 3
+reg: BCOMI4(reg) "neg %c, %0\n" 3
+
 reg: BANDI4(reg, con16) "and %c, %0, %1\n" 5
 reg: BANDI4(reg, reg)   "and %c, %0, %1\n" 4
 reg: BANDU4(reg, con16) "and %c, %0, %1\n" 5
@@ -416,6 +419,9 @@ stmt: ASGNU4(VREGP, SUBU4(reg, con1)) "dec %0\n" regop(a,0)
 stmt: ASGNP4(VREGP, SUBP4(reg, con1)) "dec %0\n" regop(a,0)
 
 stmt: ARGU4(reg) "push %0\n"
+stmt: ARGI4(reg) "push %0\n"
+stmt: ARGP4(reg) "push %0\n"
+stmt: ARGF4(reg) "push %0\n"
 
 reg: CALLI4(addr) "jsr %0\nadd %%31, %a\n" hasargs(a)
 reg: CALLI4(addr) "jsr %0\n"                 1
@@ -439,16 +445,15 @@ stmt: NEU4(reg, reg) "cmp %0, %1\nbne %a\n"
 stmt: EQI4(reg, reg) "cmp %0, %1\nbeq %a\n"
 stmt: EQU4(reg, reg) "cmp %0, %1\nbeq %a\n"
 stmt: LTI4(reg, reg) "cmp %0, %1\nblt %a\n"
-stmt: LTU4(reg, reg) "cmp %0, %1\nblt %a\n"
+stmt: LTU4(reg, reg) "cmp %0, %1\nbltu %a\n"
 stmt: LEI4(reg, reg) "cmp %0, %1\nble %a\n"
-stmt: LEU4(reg, reg) "cmp %0, %1\nble %a\n"
+stmt: LEU4(reg, reg) "cmp %0, %1\nbleu %a\n"
 stmt: GEI4(reg, reg) "cmp %0, %1\nbge %a\n"
-stmt: GEU4(reg, reg) "cmp %0, %1\nbge %a\n"
+stmt: GEU4(reg, reg) "cmp %0, %1\nbgeu %a\n"
 stmt: GTI4(reg, reg) "cmp %0, %1\nbgt %a\n"
-stmt: GTU4(reg, reg) "cmp %0, %1\nbgt %a\n"
+stmt: GTU4(reg, reg) "cmp %0, %1\nbgtu %a\n"
 stmt: LABELV  "%a:\n"
 
-stmt: ARGP4(reg) "# arg\n" 1
 %%
 
 static void progbeg(int argc, char *argv[]) {
@@ -580,19 +585,29 @@ static void local(Symbol p) {
 
 /* TODO */
 static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
-        int i, saved, sizefsave, sizeisave, varargs;
+        int i, isaved, fsaved, stackoff, varargs;
         Symbol r;
 
 	globalend();
 	print(".align 2\n");
 	print(".type %s,@function\n", f->x.name);
 	print("%s:\n", f->x.name);
+
+	// Determine what ragisters are in use and push them onto the stack.
+	// Keep track of them so we can restore them below.
+	isaved = usedmask[IREG];
+	fsaved = usedmask[FREG];
+	offset = 8; // pc + fp
+	for (i=0; i < 15; i++)
+	  if (usedmask[IREG] & (1 << i)) {
+            print("push %%%d\n", i);
+	    offset += 4;
+          }
 	print("push %%30\n");
 	print("mov %%30, %%31\n");
 
-        usedmask[0] = usedmask[1] = 0;
-        freemask[0] = freemask[1] = ~(unsigned)0;
-	offset = 8; // the pc + fp from the call
+        usedmask[IREG] = usedmask[FREG] = 0;
+        freemask[IREG] = freemask[FREG] = ~(unsigned)0;
         for (i = 0; callee[i]; i++) {
                 Symbol p = callee[i];
                 Symbol q = caller[i];
@@ -617,6 +632,9 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
 
 	print("mov %%31, %%30\n");
 	print("pop %%30\n");
+	for (i=14; i >= 0; i--)
+	  if (isaved & (1 << i))
+            print("pop %%%d\n", i);
         print("rts\n");
 
         { int l = genlabel(1);
