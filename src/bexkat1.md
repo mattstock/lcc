@@ -317,9 +317,11 @@ con1: CNSTP4  "1"  range(a,1,1)
 con16: CNSTI1 "%a"
 con16: CNSTI2 "%a" imm16(a)
 con16: CNSTI4 "%a" imm16(a)
-con16: CNSTU1 "%a"
-con16: CNSTU2 "%a" range(a,0,65534)
-con16: CNSTU4 "%a" range(a,0,65534)
+con16: conu16 "%0"
+
+conu16: CNSTU1 "%a"
+conu16: CNSTU2 "%a" range(a,0,65534)
+conu16: CNSTU4 "%a" range(a,0,65534)
 
 con: CNSTI1 "%a"
 con: CNSTI2 "%a"
@@ -382,6 +384,8 @@ addr: ADDRFP4          "%a(%%30)"
 addr: ADDRLP4          "%a(%%30)"
 
 reg: con               "ldi %c, %0\n"  5
+reg: con16             "lds %c, %0\n"  4
+reg: conu16            "ldu %c, %0\n"  4
 reg: INDIRI1(addr)     "ld.b %c, %0\n" 4
 reg: INDIRU1(addr)     "ld.b %c, %0\n" 4
 reg: INDIRI2(addr)     "ld %c, %0\n"   4
