@@ -35,7 +35,6 @@ static void segment(int);
 static void space(int);
 static void target(Node);
 static int bitcount(unsigned);
-static Symbol argreg(int, int, int, int, int);
 static int regop(Node, int);
 static int sametree(Node, Node);
 
@@ -387,7 +386,8 @@ reg: INDIRU2(addr)     "ld %c, %0\n"   4
 reg: INDIRI4(addr)     "ld.l %c, %0\n" 4
 reg: INDIRU4(addr)     "ld.l %c, %0\n" 4
 reg: INDIRP4(addr)     "ld.l %c, %0\n" 4 
-reg: addr              "ld %c, %0\n"   4
+reg: addr              "ld.l %c, %0\n" 4
+reg: ADDRGP4	       "ldi %c, %a\n"  3
 
 reg: CVII4(reg) "# extend\n" 2
 reg: CVUI4(reg) "# nop\n" 2
@@ -451,7 +451,6 @@ stmt: LABELV  "%a:\n"
 stmt: ARGP4(reg) "# arg\n" 1
 %%
 
-/* MAYBE OK */
 static void progbeg(int argc, char *argv[]) {
         int i;
 
@@ -489,14 +488,12 @@ static Symbol rmap(int opk) {
 	stabprefix = ".LL";
 }
 
-/* OK */
 static void globalend(void) {
         if (prevg && prevg->type->size > 0)
                 print(".size %s,%d\n", prevg->x.name, prevg->type->size);
         prevg = NULL;
 }
 
-/* OK */
 static void progend(void) {
         globalend();
         (*IR->segment)(CODE);
@@ -544,15 +541,6 @@ static void clobber(Node p) {
 static void emit2(Node p) {
 }
 
-/* TODO */
-static Symbol argreg(int argno, int offset, int ty, int sz, int ty0) {
-        assert((offset&3) == 0);
-        if (offset > 12)
-                return NULL;
-        else
-                return ireg[(offset/4) + 4];
-}
-
 /* OK */
 static int imm16(Node p) {
         return range(p, -32766, 32767);
@@ -577,12 +565,6 @@ static int sametree(Node p, Node q) {
 }
 
 /* TODO */
-static void doarg(Node p) {
-        assert(p && p->syms[0]);
-        mkactual(4, p->syms[0]->u.c.v.i);
-}
-
-/* TODO */
 static void local(Symbol p) {
         if (isfloat(p->type))
                 p->sclass = AUTO;
@@ -599,23 +581,25 @@ static void local(Symbol p) {
 /* TODO */
 static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
         int i, saved, sizefsave, sizeisave, varargs;
-        Symbol r, argregs[4];
+        Symbol r;
 
 	globalend();
 	print(".align 2\n");
 	print(".type %s,@function\n", f->x.name);
 	print("%s:\n", f->x.name);
 	print("push %%30\n");
+	print("mov %%30, %%31\n");
 
         usedmask[0] = usedmask[1] = 0;
         freemask[0] = freemask[1] = ~(unsigned)0;
+	offset = 8; // the pc + fp from the call
         for (i = 0; callee[i]; i++) {
                 Symbol p = callee[i];
                 Symbol q = caller[i];
                 assert(q);
                 offset = roundup(offset, q->type->align);
                 p->x.offset = q->x.offset = offset;
-                p->x.name = q->x.name = stringd(offset);
+                p->x.name = q->x.name = stringf("%d", offset);
                 offset += roundup(q->type->size, 2);
 		p->sclass = q->sclass = AUTO;
         }
@@ -623,8 +607,6 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
         offset = maxoffset = 0;
 
         gencode(caller, callee);
-
-	print("mov %%30, %%31\n");
 
         framesize = roundup(maxoffset, 2);
         if (framesize > 0) {
@@ -755,7 +737,11 @@ static void space(int n) {
                 print(".space %d\n", n);
 }
 
-/* TODO */
+static void doarg(Node p) {
+        assert(p && p->syms[0]);
+        mkactual(4, p->syms[0]->u.c.v.i);
+}
+
 static void blkloop(int dreg, int doff, int sreg, int soff, int size, int tmps[]) {}
 static void blkfetch(int size, int off, int reg, int tmp) {
         assert(size == 1 || size == 2 || size == 4);
@@ -815,7 +801,7 @@ Interface bexkat1IR = {
         0,  /* mulops_calls */
         0,  /* wants_callb */
         1,  /* wants_argb */
-        1,  /* left_to_right */
+        0,  /* left_to_right */
         0,  /* wants_dag */
         1,  /* unsigned_char */
         address,
