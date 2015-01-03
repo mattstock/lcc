@@ -342,6 +342,11 @@ reg: SUBU4(reg, reg)    "sub %c, %0, %1\n" 4
 reg: ADDP4(reg, reg)    "add %c, %0, %1\n" 4
 reg: SUBP4(reg, reg)    "sub %c, %0, %1\n" 4
 
+reg: MULI4(reg, reg)    "mul %c, %0, %1\n" 4
+reg: MULI4(reg, con16)  "mul %c, %0, %1\n" 4
+reg: MULU4(reg, reg)    "mulu %c, %0, %1\n" 4
+reg: MULU4(reg, con16)  "mulu %c, %0, %1\n" 4
+
 reg: BCOMU4(reg) "neg %c, %0\n" 3
 reg: BCOMI4(reg) "neg %c, %0\n" 3
 
@@ -412,6 +417,8 @@ stmt: ASGNI4(VREGP, ADDI4(reg, con16)) "add %0, %1\n" regop(a,3)
 stmt: ASGNU4(VREGP, ADDU4(reg, con16)) "add %0, %1\n" regop(a,3)
 stmt: ASGNI4(VREGP, SUBI4(reg, con16)) "sub %0, %1\n" regop(a,3)
 stmt: ASGNU4(VREGP, SUBU4(reg, con16)) "sub %0, %1\n" regop(a,3)
+stmt: ASGNI4(VREGP, MULI4(reg, con16)) "mul %0, %1\n" regop(a,3)
+stmt: ASGNU4(VREGP, MULU4(reg, con16)) "mulu %0, %1\n" regop(a,3)
 
 stmt: ASGNI4(VREGP, ADDI4(reg, con1)) "inc %0\n" regop(a,0)
 stmt: ASGNI4(VREGP, ADDU4(reg, con1)) "inc %0\n" regop(a,0)
