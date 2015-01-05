@@ -555,6 +555,14 @@ static void clobber(Node p) {
 
 /* TODO */
 static void emit2(Node p) {
+#define preg(f) ((f)[getregnum(p->x.kids[0])]->x.name)
+  if (generic(p->op) == CVI || generic(p->op) == CVU || 
+      generic(p->op) == LOAD) {
+    char *dst = ireg[getregnum(p)]->x.name;
+    char *src = preg(ireg);
+    if (dst != src)
+      print("mov %s,%s\n", dst, src);
+  }
 }
 
 /* OK */
@@ -686,7 +694,6 @@ static void defaddress(Symbol p) {
        print(".long %s\n", p->x.name);
 }
 
-/* OK, may need to check null termination */
 static void defstring(int n, char *str) {
        assert(str[n] == '\0');
        print(".string \"%s\"\n", str);
@@ -717,11 +724,11 @@ static void segment(int n) {
         if (n == cseg)
                 return;
         cseg = n;
-        if (cseg == CODE)
+        if (cseg == CODE || cseg == LIT)
                 print(".text\n");
         else if (cseg == BSS)
                 print(".section bss\n");
-        else if (cseg == DATA || cseg == LIT)
+        else if (cseg == DATA)
                 print(".data\n");
 }
 
