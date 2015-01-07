@@ -724,11 +724,11 @@ static void segment(int n) {
         if (n == cseg)
                 return;
         cseg = n;
-        if (cseg == CODE || cseg == LIT)
+        if (cseg == CODE)
                 print(".text\n");
         else if (cseg == BSS)
                 print(".section bss\n");
-        else if (cseg == DATA)
+        else if (cseg == DATA || cseg == LIT)
                 print(".data\n");
 }
 
