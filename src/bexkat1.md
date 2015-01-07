@@ -604,18 +604,32 @@ static void local(Symbol p) {
 
 /* TODO */
 static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
-        int i, isaved, fsaved, stackoff, varargs;
-        Symbol r;
+        int i;
 
 	globalend();
 	print(".align 2\n");
 	print(".type %s,@function\n", f->x.name);
 	print("%s:\n", f->x.name);
 
-	// Determine what ragisters are in use and push them onto the stack.
-	// Keep track of them so we can restore them below.
-	isaved = usedmask[IREG];
-	fsaved = usedmask[FREG];
+        usedmask[IREG] = usedmask[FREG] = 0;
+        freemask[IREG] = freemask[FREG] = ~(unsigned)0;
+        offset = maxoffset = 0;
+
+	/* Set up basic arg info for gencode.
+           We patch up the offsets below, once we know
+	   how many registers need to be put on the stack. */
+        for (i = 0; callee[i]; i++) {
+                Symbol p = callee[i];
+                Symbol q = caller[i];
+                assert(q);
+                p->x.name = q->x.name = stringf("tmp");
+		p->sclass = q->sclass = AUTO;
+        }
+        assert(caller[i] == 0);
+
+        gencode(caller, callee);
+
+	// Push used registers on stack
 	offset = 8; // pc + fp
 	for (i=0; i < 15; i++)
 	  if (usedmask[IREG] & (1 << i)) {
@@ -625,8 +639,7 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
 	print("push %%30\n");
 	print("mov %%30, %%31\n");
 
-        usedmask[IREG] = usedmask[FREG] = 0;
-        freemask[IREG] = freemask[FREG] = ~(unsigned)0;
+	// Pass 2: Assign the argument offsets in the stack
         for (i = 0; callee[i]; i++) {
                 Symbol p = callee[i];
                 Symbol q = caller[i];
@@ -635,12 +648,8 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
                 p->x.offset = q->x.offset = offset;
                 p->x.name = q->x.name = stringf("%d", offset);
                 offset += roundup(q->type->size, 2);
-		p->sclass = q->sclass = AUTO;
         }
         assert(caller[i] == 0);
-        offset = maxoffset = 0;
-
-        gencode(caller, callee);
 
         framesize = roundup(maxoffset, 2);
         if (framesize > 0) {
@@ -652,7 +661,7 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
 	print("mov %%31, %%30\n");
 	print("pop %%30\n");
 	for (i=14; i >= 0; i--)
-	  if (isaved & (1 << i))
+	  if (usedmask[IREG] & (1 << i))
             print("pop %%%d\n", i);
         print("rts\n");
 
