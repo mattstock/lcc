@@ -346,6 +346,14 @@ reg: MULI4(reg, reg)    "mul %c, %0, %1\n" 4
 reg: MULI4(reg, con16)  "mul %c, %0, %1\n" 4
 reg: MULU4(reg, reg)    "mulu %c, %0, %1\n" 4
 reg: MULU4(reg, con16)  "mulu %c, %0, %1\n" 4
+reg: DIVI4(reg, reg)    "div %c, %0, %1\n" 4
+reg: DIVI4(reg, con16)  "div %c, %0, %1\n" 4
+reg: DIVU4(reg, reg)    "divu %c, %0, %1\n" 4
+reg: DIVU4(reg, con16)  "divu %c, %0, %1\n" 4
+reg: MODI4(reg, reg)    "mod %c, %0, %1\n" 4
+reg: MODI4(reg, con16)  "mod %c, %0, %1\n" 4
+reg: MODU4(reg, reg)    "modu %c, %0, %1\n" 4
+reg: MODU4(reg, con16)  "modu %c, %0, %1\n" 4
 
 reg: BCOMU4(reg) "neg %c, %0\n" 3
 reg: BCOMI4(reg) "neg %c, %0\n" 3
