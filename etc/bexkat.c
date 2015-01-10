@@ -1,5 +1,4 @@
-/* x86s running Linux */
-
+/* x86s running Linux */ 
 #include <string.h>
 
 static char rcsid[] = "$Id$";
@@ -10,12 +9,10 @@ static char rcsid[] = "$Id$";
 
 char *suffixes[] = { ".c", ".i", ".s", ".o", ".out", 0 };
 char inputs[256] = "";
-char *cpp[] = { "/usr/bin/cpp",
-	"-U__GNUC__", "-D_POSIX_SOURCE", "-D__STRICT_ANSI__",
-	"-Dunix", "-Di386", "-Dlinux",
-	"-D__unix__", "-D__i386__", "-D__linux__", "-D__signed__=signed",
+char *cpp[] = { "/usr/bin/cpp", "-D__STRICT_ANSI__", "-Dunix",
+	"-D__unix__", "-D__linux__", "-D__signed__=signed",
 	"$1", "$2", "$3", 0 };
-char *include[] = {"-I" LCCDIR "include", "-I/usr/include", 0 };
+char *include[] = {"-I" LCCDIR "include", 0 };
 char *com[] = {LCCDIR "rcc", "-target=bexkat1/bexkat1000", "$1", "$2", "$3", 0 };
 char *as[] = { "/usr/local/bin/bexkat1-elf-as",  "-o", "$3", "$1", "$2", 0 };
 char *ld[] = {

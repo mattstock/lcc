@@ -6,4 +6,4 @@ or if you only want to do the basic build to modify the md files you can get awa
 
 export BUILDDIR=~/lcc
 export LCCDIR=$BUILDDIR
-make CFLAGS="-g -m32" HOSTFILE="etc/linux.c" all
+make CFLAGS="-g -m32" HOSTFILE="etc/bexkat.c" all
