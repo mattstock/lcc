@@ -355,8 +355,9 @@ reg: MODI4(reg, con16)  "mod %c, %0, %1\n" 4
 reg: MODU4(reg, reg)    "modu %c, %0, %1\n" 4
 reg: MODU4(reg, con16)  "modu %c, %0, %1\n" 4
 
-reg: BCOMU4(reg) "neg %c, %0\n" 3
-reg: BCOMI4(reg) "neg %c, %0\n" 3
+reg: BCOMU4(reg) "com %c, %0\n" 3
+reg: BCOMI4(reg) "com %c, %0\n" 3
+reg: NEGI4(reg)  "neg %c, %0\n" 3
 
 reg: BANDI4(reg, con16) "and %c, %0, %1\n" 5
 reg: BANDI4(reg, reg)   "and %c, %0, %1\n" 4
