@@ -2,7 +2,7 @@
 #define INTTMP 0x3fff0000
 #define INTVAR 0x00007fff
 #define FLTTMP 0xffff0000
-#define FLTVAR 0x0000ffff
+#define FLTVAR 0x00007fff
 #include "c.h"
 #define NODEPTR_TYPE Node
 #define OP_LABEL(p) ((p)->op)
@@ -297,6 +297,7 @@ reg:  INDIRU2(VREGP)     "# read register\n"
 reg:  INDIRI4(VREGP)     "# read register\n"
 reg:  INDIRU4(VREGP)     "# read register\n"
 reg:  INDIRP4(VREGP)     "# read register\n"
+reg:  INDIRF4(VREGP)     "# read register\n"
 
 stmt: ASGNI1(VREGP,reg)  "# write register\n"
 stmt: ASGNU1(VREGP,reg)  "# write register\n"
@@ -305,6 +306,7 @@ stmt: ASGNU2(VREGP,reg)  "# write register\n"
 stmt: ASGNI4(VREGP,reg)  "# write register\n"
 stmt: ASGNU4(VREGP,reg)  "# write register\n"
 stmt: ASGNP4(VREGP,reg)  "# write register\n"
+stmt: ASGNF4(VREGP,reg)  "# write register\n"
 
 con1: CNSTI1  "1"  range(a,1,1)
 con1: CNSTI2  "1"  range(a,1,1)
@@ -313,6 +315,7 @@ con1: CNSTU1  "1"  range(a,1,1)
 con1: CNSTU2  "1"  range(a,1,1)
 con1: CNSTU4  "1"  range(a,1,1)
 con1: CNSTP4  "1"  range(a,1,1)
+con1: CNSTF4  "1"  range(a,1,1)
 
 con16: CNSTI1 "%a"
 con16: CNSTI2 "%a" imm16(a)
@@ -330,66 +333,72 @@ con: CNSTU1 "%a"
 con: CNSTU2 "%a"
 con: CNSTU4 "%a"
 con: CNSTP4 "%a"
+con: CNSTF4 "%a"
 
-reg: ADDI4(reg, con16)  "add %c, %0, %1\n" 5
+reg: ADDI4(reg, con16)  "addi %c, %0, %1\n" 5
 reg: ADDI4(reg, reg)    "add %c, %0, %1\n" 4
-reg: ADDU4(reg, con16)  "add %c, %0, %1\n" 5
+reg: ADDU4(reg, con16)  "addi %c, %0, %1\n" 5
 reg: ADDU4(reg, reg)    "add %c, %0, %1\n" 4
-reg: SUBI4(reg, con16)  "sub %c, %0, %1\n" 5
+reg: SUBI4(reg, con16)  "subi %c, %0, %1\n" 5
 reg: SUBI4(reg, reg)    "sub %c, %0, %1\n" 4
-reg: SUBU4(reg, con16)  "sub %c, %0, %1\n" 5
+reg: SUBU4(reg, con16)  "subi %c, %0, %1\n" 5
 reg: SUBU4(reg, reg)    "sub %c, %0, %1\n" 4
 reg: ADDP4(reg, reg)    "add %c, %0, %1\n" 4
 reg: SUBP4(reg, reg)    "sub %c, %0, %1\n" 4
+reg: ADDF4(reg, reg)    "add.s %c, %0, %1\n" 4
+reg: SUBF4(reg, reg)    "sub.s %c, %0, %1\n" 4
 
 reg: MULI4(reg, reg)    "mul %c, %0, %1\n" 4
-reg: MULI4(reg, con16)  "mul %c, %0, %1\n" 4
+reg: MULI4(reg, con16)  "muli %c, %0, %1\n" 4
 reg: MULU4(reg, reg)    "mulu %c, %0, %1\n" 4
-reg: MULU4(reg, con16)  "mulu %c, %0, %1\n" 4
+reg: MULU4(reg, con16)  "muliu %c, %0, %1\n" 4
+reg: MULF4(reg, reg)    "mul.s %c, %0, %1\n" 4
 reg: DIVI4(reg, reg)    "div %c, %0, %1\n" 4
 reg: DIVI4(reg, con16)  "div %c, %0, %1\n" 4
 reg: DIVU4(reg, reg)    "divu %c, %0, %1\n" 4
-reg: DIVU4(reg, con16)  "divu %c, %0, %1\n" 4
+reg: DIVU4(reg, con16)  "diviu %c, %0, %1\n" 4
+reg: DIVF4(reg, reg)    "div.s %c, %0, %1\n" 4
 reg: MODI4(reg, reg)    "mod %c, %0, %1\n" 4
-reg: MODI4(reg, con16)  "mod %c, %0, %1\n" 4
+reg: MODI4(reg, con16)  "modi %c, %0, %1\n" 4
 reg: MODU4(reg, reg)    "modu %c, %0, %1\n" 4
-reg: MODU4(reg, con16)  "modu %c, %0, %1\n" 4
+reg: MODU4(reg, con16)  "modiu %c, %0, %1\n" 4
 
 reg: BCOMU4(reg) "com %c, %0\n" 3
 reg: BCOMI4(reg) "com %c, %0\n" 3
 reg: NEGI4(reg)  "neg %c, %0\n" 3
+reg: NEGF4(reg)  "neg.s %c, %0\n" 3
 
-reg: BANDI4(reg, con16) "and %c, %0, %1\n" 5
+reg: BANDI4(reg, con16) "andi %c, %0, %1\n" 5
 reg: BANDI4(reg, reg)   "and %c, %0, %1\n" 4
-reg: BANDU4(reg, con16) "and %c, %0, %1\n" 5
+reg: BANDU4(reg, con16) "andi %c, %0, %1\n" 5
 reg: BANDU4(reg, reg)   "and %c, %0, %1\n" 4
-reg: BXORI4(reg, con16) "xor %c, %0, %1\n" 5
+reg: BXORI4(reg, con16) "xori %c, %0, %1\n" 5
 reg: BXORI4(reg, reg)   "xor %c, %0, %1\n" 4 
-reg: BXORU4(reg, con16) "xor %c, %0, %1\n" 5
+reg: BXORU4(reg, con16) "xori %c, %0, %1\n" 5
 reg: BXORU4(reg, reg)   "xor %c, %0, %1\n" 4
-reg: BORI4(reg, con16)  "or %c %0, %1\n"   5
+reg: BORI4(reg, con16)  "ori %c %0, %1\n"   5
 reg: BORI4(reg, reg)    "or %c, %0, %1\n"  4
-reg: BORU4(reg, con16)  "or %c, %0, %1\n"  5
+reg: BORU4(reg, con16)  "ori %c, %0, %1\n"  5
 reg: BORU4(reg, reg)    "or %c, %0, %1\n"  4
-reg: LSHI4(reg, con16)  "lsl %c, %0, %1\n" 5
+reg: LSHI4(reg, con16)  "lsli %c, %0, %1\n" 5
 reg: LSHI4(reg, reg)    "lsl %c, %0, %1\n" 4
-reg: LSHU4(reg, con16)  "lsl %c, %0, %1\n" 5
+reg: LSHU4(reg, con16)  "lsli %c, %0, %1\n" 5
 reg: LSHU4(reg, reg)    "lsl %c, %0, %1\n" 4 
-reg: RSHI4(reg, con16)  "asr %c, %0, %1\n" 5
+reg: RSHI4(reg, con16)  "asri %c, %0, %1\n" 5
 reg: RSHI4(reg, reg)    "asr %c, %0, %1\n" 4
-reg: RSHU4(reg, con16)  "lsr %c, %0, %1\n" 5
+reg: RSHU4(reg, con16)  "lsri %c, %0, %1\n" 5
 reg: RSHU4(reg, reg)    "lsr %c, %0, %1\n" 4 
 
-reg: LOADI1(reg)  "mov %c,%0\n"  move(a)
-reg: LOADI2(reg)  "mov %c,%0\n"  move(a)
-reg: LOADI4(reg)  "mov %c,%0\n"  move(a)
-reg: LOADU1(reg)  "mov %c,%0\n"  move(a)
-reg: LOADU2(reg)  "mov %c,%0\n"  move(a)
-reg: LOADU4(reg)  "mov %c,%0\n"  move(a)
-reg: LOADP4(reg)  "mov %c,%0\n"  move(a)
+reg: LOADI1(reg)  "mov %c, %0\n"  move(a)
+reg: LOADI2(reg)  "mov %c, %0\n"  move(a)
+reg: LOADI4(reg)  "mov %c, %0\n"  move(a)
+reg: LOADU1(reg)  "mov %c, %0\n"  move(a)
+reg: LOADU2(reg)  "mov %c, %0\n"  move(a)
+reg: LOADU4(reg)  "mov %c, %0\n"  move(a)
+reg: LOADP4(reg)  "mov %c, %0\n"  move(a)
+reg: LOADF4(reg)  "mov %c, %0\n"  move(a)
 
 acon: ADDRGP4          "%a"
-addr: acon             "%0"
 addr: reg              "0(%0)"
 addr: ADDI4(reg, acon) "%1(%0)"
 addr: ADDU4(reg, acon) "%1(%0)"
@@ -398,16 +407,25 @@ addr: ADDRFP4          "%a(%%30)"
 addr: ADDRLP4          "%a(%%30)"
 
 reg: con               "ldi %c, %0\n"  5
-reg: con16             "lds %c, %0\n"  4
-reg: conu16            "ldu %c, %0\n"  4
+reg: con16             "ldis %c, %0\n"  4
+reg: conu16            "ldiu %c, %0\n"  4
 reg: INDIRI1(addr)     "ld.b %c, %0\n" 4
 reg: INDIRU1(addr)     "ld.b %c, %0\n" 4
+reg: INDIRI1(acon)     "ldd.b %c, %0\n" 4
+reg: INDIRU1(acon)     "ldd.b %c, %0\n" 4
 reg: INDIRI2(addr)     "ld %c, %0\n"   4
 reg: INDIRU2(addr)     "ld %c, %0\n"   4
+reg: INDIRI2(acon)     "ldd %c, %0\n"   4
+reg: INDIRU2(acon)     "ldd %c, %0\n"   4
 reg: INDIRI4(addr)     "ld.l %c, %0\n" 4
 reg: INDIRU4(addr)     "ld.l %c, %0\n" 4
-reg: INDIRP4(addr)     "ld.l %c, %0\n" 4 
+reg: INDIRP4(addr)     "ld.l %c, %0\n" 4
+reg: INDIRI4(acon)     "ldd.l %c, %0\n" 4
+reg: INDIRU4(acon)     "ldd.l %c, %0\n" 4
+reg: INDIRP4(acon)     "ldd.l %c, %0\n" 4
+reg: INDIRF4(addr)     "ld.s %c, %0\n" 4 
 reg: addr              "ld.l %c, %0\n" 4
+reg: acon              "ldd.l %c, %0\n" 4
 reg: ADDRGP4	       "ldi %c, %a\n"  3
 
 reg: CVII4(reg) "# extend\n" 2
@@ -416,62 +434,83 @@ reg: CVUI4(reg) "# nop\n" 2
 stmt: reg  ""
 stmt: ASGNI1(addr, reg) "st.b %1, %0\n" 1
 stmt: ASGNU1(addr, reg) "st.b %1, %0\n" 1
+stmt: ASGNI1(acon, reg) "std.b %1, %0\n" 1
+stmt: ASGNU1(acon, reg) "std.b %1, %0\n" 1
 stmt: ASGNI2(addr, reg) "st %1, %0\n"   1
 stmt: ASGNU2(addr, reg) "st %1, %0\n"   1
+stmt: ASGNI2(acon, reg) "std %1, %0\n"   1
+stmt: ASGNU2(acon, reg) "std %1, %0\n"   1
 stmt: ASGNI4(addr, reg) "st.l %1, %0\n" 1
 stmt: ASGNU4(addr, reg) "st.l %1, %0\n" 1
 stmt: ASGNP4(addr, reg) "st.l %1, %0\n" 1
+stmt: ASGNI4(acon, reg) "std.l %1, %0\n" 1
+stmt: ASGNU4(acon, reg) "std.l %1, %0\n" 1
+stmt: ASGNP4(acon, reg) "std.l %1, %0\n" 1
+stmt: ASGNF4(addr, reg) "st.s %1, %0\n" 1
 
-stmt: ASGNI4(VREGP, ADDI4(reg, con16)) "add %0, %1\n" regop(a,3)
-stmt: ASGNU4(VREGP, ADDU4(reg, con16)) "add %0, %1\n" regop(a,3)
-stmt: ASGNI4(VREGP, SUBI4(reg, con16)) "sub %0, %1\n" regop(a,3)
-stmt: ASGNU4(VREGP, SUBU4(reg, con16)) "sub %0, %1\n" regop(a,3)
-stmt: ASGNI4(VREGP, MULI4(reg, con16)) "mul %0, %1\n" regop(a,3)
-stmt: ASGNU4(VREGP, MULU4(reg, con16)) "mulu %0, %1\n" regop(a,3)
-
-stmt: ASGNI4(VREGP, ADDI4(reg, con1)) "inc %0\n" regop(a,0)
-stmt: ASGNI4(VREGP, ADDU4(reg, con1)) "inc %0\n" regop(a,0)
-stmt: ASGNU4(VREGP, ADDU4(reg, con1)) "inc %0\n" regop(a,0)
-stmt: ASGNP4(VREGP, ADDP4(reg, con1)) "inc %0\n" regop(a,0)
-stmt: ASGNI4(VREGP, SUBI4(reg, con1)) "dec %0\n" regop(a,0)
-stmt: ASGNI4(VREGP, SUBU4(reg, con1)) "dec %0\n" regop(a,0)
-stmt: ASGNU4(VREGP, SUBU4(reg, con1)) "dec %0\n" regop(a,0)
-stmt: ASGNP4(VREGP, SUBP4(reg, con1)) "dec %0\n" regop(a,0)
+stmt: ASGNI4(VREGP, ADDI4(reg, con1)) "inc %0\n"   regop(a,0)
+stmt: ASGNI4(VREGP, ADDU4(reg, con1)) "inc %0\n"   regop(a,0)
+stmt: ASGNU4(VREGP, ADDU4(reg, con1)) "inc %0\n"   regop(a,0)
+stmt: ASGNP4(VREGP, ADDP4(reg, con1)) "inc %0\n"   regop(a,0)
+stmt: ASGNI4(VREGP, SUBI4(reg, con1)) "dec %0\n"   regop(a,0)
+stmt: ASGNI4(VREGP, SUBU4(reg, con1)) "dec %0\n"   regop(a,0)
+stmt: ASGNU4(VREGP, SUBU4(reg, con1)) "dec %0\n"   regop(a,0)
+stmt: ASGNP4(VREGP, SUBP4(reg, con1)) "dec %0\n"   regop(a,0)
 
 stmt: ARGU4(reg) "push %0\n"
 stmt: ARGI4(reg) "push %0\n"
 stmt: ARGP4(reg) "push %0\n"
-stmt: ARGF4(reg) "push %0\n"
+stmt: ARGF4(reg) "push.s %0\n"
 
-reg: CALLI4(addr) "jsr %0\nadd %%31, %a\n" hasargs(a)
+reg: CALLI4(addr) "jsr %0\naddi %%31, %%31, %a\n" hasargs(a)
 reg: CALLI4(addr) "jsr %0\n"                 1
-reg: CALLU4(addr) "jsr %0\nadd %%31, %a\n" hasargs(a)
+reg: CALLU4(addr) "jsr %0\naddi %%31, %%31, %a\n" hasargs(a)
 reg: CALLU4(addr) "jsr %0\n"                 1
-reg: CALLP4(addr) "jsr %0\nadd %%31, %a\n" hasargs(a)
+reg: CALLP4(addr) "jsr %0\naddi %%31, %%31, %a\n" hasargs(a)
 reg: CALLP4(addr) "jsr %0\n"                 1
+reg: CALLF4(addr) "jsr %0\naddi %%31, %%31, %a\n" hasargs(a)
+reg: CALLF4(addr) "jsr %0\n"                 1
 
-stmt: CALLV(addr) "jsr %0\nadd %%31, %a\n" hasargs(a)
+reg: CALLI4(acon) "jsrd %0\naddi %%31, %%31, %a\n" hasargs(a)
+reg: CALLI4(acon) "jsrd %0\n"                 1
+reg: CALLU4(acon) "jsrd %0\naddi %%31, %%31, %a\n" hasargs(a)
+reg: CALLU4(acon) "jsrd %0\n"                 1
+reg: CALLP4(acon) "jsrd %0\naddi %%31, %%31, %a\n" hasargs(a)
+reg: CALLP4(acon) "jsrd %0\n"                 1
+reg: CALLF4(acon) "jsrd %0\naddi %%31, %%31, %a\n" hasargs(a)
+reg: CALLF4(acon) "jsrd %0\n"                 1
+
+stmt: CALLV(addr) "jsr %0\naddi %%31, %%31, %a\n" hasargs(a)
 stmt: CALLV(addr) "jsr %0\n"                 1
+stmt: CALLV(acon) "jsrd %0\naddi %%31, %%31, %a\n" hasargs(a)
+stmt: CALLV(acon) "jsrd %0\n"                1
 
 stmt: RETI4(reg)  "# ret\n"
 stmt: RETU4(reg)  "# ret\n"
 stmt: RETF4(reg)  "# ret\n"
 stmt: RETP4(reg)  "# ret\n"
 
-stmt: JUMPV(addr) "jmp %0\n"  2
+stmt: JUMPV(addr) "jmp %0\n"  1
+stmt: JUMPV(acon) "jmpd %0\n" 1
 
 stmt: NEI4(reg, reg) "cmp %0, %1\nbne %a\n"
 stmt: NEU4(reg, reg) "cmp %0, %1\nbne %a\n"
+stmt: NEF4(reg, reg) "cmp.s %0, %1\nbne %a\n"
 stmt: EQI4(reg, reg) "cmp %0, %1\nbeq %a\n"
 stmt: EQU4(reg, reg) "cmp %0, %1\nbeq %a\n"
+stmt: EQF4(reg, reg) "cmp.s %0, %1\nbeq %a\n"
 stmt: LTI4(reg, reg) "cmp %0, %1\nblt %a\n"
 stmt: LTU4(reg, reg) "cmp %0, %1\nbltu %a\n"
+stmt: LTF4(reg, reg) "cmp.s %0, %1\nblt %a\n"
 stmt: LEI4(reg, reg) "cmp %0, %1\nble %a\n"
 stmt: LEU4(reg, reg) "cmp %0, %1\nbleu %a\n"
+stmt: LEF4(reg, reg) "cmp.s %0, %1\nble %a\n"
 stmt: GEI4(reg, reg) "cmp %0, %1\nbge %a\n"
 stmt: GEU4(reg, reg) "cmp %0, %1\nbgeu %a\n"
+stmt: GEF4(reg, reg) "cmp.s %0, %1\nbge %a\n"
 stmt: GTI4(reg, reg) "cmp %0, %1\nbgt %a\n"
 stmt: GTU4(reg, reg) "cmp %0, %1\nbgtu %a\n"
+stmt: GTF4(reg, reg) "cmp.s %0, %1\nbgt %a\n"
 stmt: LABELV  "%a:\n"
 
 %%
@@ -499,7 +538,6 @@ static void progbeg(int argc, char *argv[]) {
         vmask[IREG] = INTVAR; vmask[FREG] = FLTVAR;
 }
 
-/* OK */
 static Symbol rmap(int opk) {
         switch (optype(opk)) {
         case I: case U: case P: case B:
@@ -525,7 +563,6 @@ static void progend(void) {
         print(".ident \"LCC: 4.2\"\n");
 }
 
-/* TODO */
 static void target(Node p) {
   assert(p);
   switch (specific(p->op)) {
@@ -535,15 +572,20 @@ static void target(Node p) {
     case CALL+V:
       setreg(p, ireg[15]);
       break;
+    case CALL+F:
+      setreg(p, freg2[15]);
+      break;
     case RET+I:
     case RET+U:
     case RET+P:
       rtarget(p, 0, ireg[15]);
       break;
+    case RET+F:
+      rtarget(p, 0, freg2[15]);
+      break;
   }
 }
 
-/* TODO */
 static void clobber(Node p) {
         assert(p);
         switch (specific(p->op)) {
@@ -562,7 +604,7 @@ static void clobber(Node p) {
         }
 }
 
-/* TODO */
+/* Fix this for floats */
 static void emit2(Node p) {
 #define preg(f) ((f)[getregnum(p->x.kids[0])]->x.name)
   if (generic(p->op) == CVI || generic(p->op) == CVU || 
@@ -570,11 +612,10 @@ static void emit2(Node p) {
     char *dst = ireg[getregnum(p)]->x.name;
     char *src = preg(ireg);
     if (dst != src)
-      print("mov %s,%s\n", dst, src);
+      print("mov %s, %s\n", dst, src);
   }
 }
 
-/* OK */
 static int imm16(Node p) {
         return range(p, -32766, 32767);
 }
@@ -597,7 +638,6 @@ static int sametree(Node p, Node q) {
     && sametree(p->kids[1], q->kids[1]);
 }
 
-/* TODO */
 static void local(Symbol p) {
         if (isfloat(p->type))
                 p->sclass = AUTO;
@@ -611,7 +651,6 @@ static void local(Symbol p) {
         }
 }
 
-/* TODO */
 static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
         int i;
 
@@ -645,6 +684,11 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
             print("push %%%d\n", i);
 	    offset += 4;
           }
+	for (i=0; i < 15; i++)
+	  if (usedmask[FREG] & (1 << i)) {
+            print("push.s %%%d\n", i);
+	    offset += 4;
+          }
 	print("push %%30\n");
 	print("mov %%30, %%31\n");
 
@@ -662,13 +706,16 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
 
         framesize = roundup(maxoffset, 2);
         if (framesize > 0) {
-	  print("sub %%31, %d\n", framesize);
+	  print("subi %%31, %%31, %d\n", framesize);
         }
 
         emitcode();
 
 	print("mov %%31, %%30\n");
 	print("pop %%30\n");
+	for (i=14; i >= 0; i--)
+	  if (usedmask[FREG] & (1 << i))
+            print("pop.s %%%d\n", i);
 	for (i=14; i >= 0; i--)
 	  if (usedmask[IREG] & (1 << i))
             print("pop %%%d\n", i);
@@ -853,8 +900,8 @@ Interface bexkat1IR = {
         0, 1, 0,  /* struct */
         0,      /* little_endian */
         0,  /* mulops_calls */
-        0,  /* wants_callb */
-        1,  /* wants_argb */
+        1,  /* wants_callb */
+        0,  /* wants_argb */
         0,  /* left_to_right */
         0,  /* wants_dag */
         1,  /* unsigned_char */
