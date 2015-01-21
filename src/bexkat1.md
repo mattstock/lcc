@@ -333,7 +333,6 @@ con: CNSTU1 "%a"
 con: CNSTU2 "%a"
 con: CNSTU4 "%a"
 con: CNSTP4 "%a"
-con: CNSTF4 "%a"
 
 reg: ADDI4(reg, con16)  "addi %c, %0, %1\n" 5
 reg: ADDI4(reg, reg)    "add %c, %0, %1\n" 4
@@ -345,19 +344,15 @@ reg: SUBU4(reg, con16)  "subi %c, %0, %1\n" 5
 reg: SUBU4(reg, reg)    "sub %c, %0, %1\n" 4
 reg: ADDP4(reg, reg)    "add %c, %0, %1\n" 4
 reg: SUBP4(reg, reg)    "sub %c, %0, %1\n" 4
-reg: ADDF4(reg, reg)    "add.s %c, %0, %1\n" 4
-reg: SUBF4(reg, reg)    "sub.s %c, %0, %1\n" 4
 
 reg: MULI4(reg, reg)    "mul %c, %0, %1\n" 4
 reg: MULI4(reg, con16)  "muli %c, %0, %1\n" 4
 reg: MULU4(reg, reg)    "mulu %c, %0, %1\n" 4
 reg: MULU4(reg, con16)  "muliu %c, %0, %1\n" 4
-reg: MULF4(reg, reg)    "mul.s %c, %0, %1\n" 4
 reg: DIVI4(reg, reg)    "div %c, %0, %1\n" 4
-reg: DIVI4(reg, con16)  "div %c, %0, %1\n" 4
+reg: DIVI4(reg, con16)  "divi %c, %0, %1\n" 4
 reg: DIVU4(reg, reg)    "divu %c, %0, %1\n" 4
 reg: DIVU4(reg, con16)  "diviu %c, %0, %1\n" 4
-reg: DIVF4(reg, reg)    "div.s %c, %0, %1\n" 4
 reg: MODI4(reg, reg)    "mod %c, %0, %1\n" 4
 reg: MODI4(reg, con16)  "modi %c, %0, %1\n" 4
 reg: MODU4(reg, reg)    "modu %c, %0, %1\n" 4
@@ -366,7 +361,6 @@ reg: MODU4(reg, con16)  "modiu %c, %0, %1\n" 4
 reg: BCOMU4(reg) "com %c, %0\n" 3
 reg: BCOMI4(reg) "com %c, %0\n" 3
 reg: NEGI4(reg)  "neg %c, %0\n" 3
-reg: NEGF4(reg)  "neg.s %c, %0\n" 3
 
 reg: BANDI4(reg, con16) "andi %c, %0, %1\n" 5
 reg: BANDI4(reg, reg)   "and %c, %0, %1\n" 4
@@ -396,7 +390,6 @@ reg: LOADU1(reg)  "mov %c, %0\n"  move(a)
 reg: LOADU2(reg)  "mov %c, %0\n"  move(a)
 reg: LOADU4(reg)  "mov %c, %0\n"  move(a)
 reg: LOADP4(reg)  "mov %c, %0\n"  move(a)
-reg: LOADF4(reg)  "mov %c, %0\n"  move(a)
 
 acon: ADDRGP4          "%a"
 addr: reg              "0(%0)"
@@ -411,25 +404,26 @@ reg: con16             "ldis %c, %0\n"  4
 reg: conu16            "ldiu %c, %0\n"  4
 reg: INDIRI1(addr)     "ld.b %c, %0\n" 4
 reg: INDIRU1(addr)     "ld.b %c, %0\n" 4
-reg: INDIRI1(acon)     "ldd.b %c, %0\n" 4
-reg: INDIRU1(acon)     "ldd.b %c, %0\n" 4
-reg: INDIRI2(addr)     "ld %c, %0\n"   4
 reg: INDIRU2(addr)     "ld %c, %0\n"   4
-reg: INDIRI2(acon)     "ldd %c, %0\n"   4
-reg: INDIRU2(acon)     "ldd %c, %0\n"   4
+reg: INDIRI2(addr)     "ld %c, %0\n"   4
 reg: INDIRI4(addr)     "ld.l %c, %0\n" 4
 reg: INDIRU4(addr)     "ld.l %c, %0\n" 4
 reg: INDIRP4(addr)     "ld.l %c, %0\n" 4
+reg: INDIRI1(acon)     "ldd.b %c, %0\n" 4
+reg: INDIRU1(acon)     "ldd.b %c, %0\n" 4
+reg: INDIRI2(acon)     "ldd %c, %0\n"   4
+reg: INDIRU2(acon)     "ldd %c, %0\n"   4
 reg: INDIRI4(acon)     "ldd.l %c, %0\n" 4
 reg: INDIRU4(acon)     "ldd.l %c, %0\n" 4
 reg: INDIRP4(acon)     "ldd.l %c, %0\n" 4
-reg: INDIRF4(addr)     "ld.s %c, %0\n" 4 
+
 reg: addr              "ld.l %c, %0\n" 4
 reg: acon              "ldd.l %c, %0\n" 4
 reg: ADDRGP4	       "ldi %c, %a\n"  3
 
-reg: CVII4(reg) "# extend\n" 2
-reg: CVUI4(reg) "# nop\n" 2
+reg: CVII4(reg) "# extend\n" 1
+reg: CVUI4(reg) "# nop\n" 1
+reg: CVUU4(reg) "# nop\n" 1
 
 stmt: reg  ""
 stmt: ASGNI1(addr, reg) "st.b %1, %0\n" 1
@@ -446,7 +440,6 @@ stmt: ASGNP4(addr, reg) "st.l %1, %0\n" 1
 stmt: ASGNI4(acon, reg) "std.l %1, %0\n" 1
 stmt: ASGNU4(acon, reg) "std.l %1, %0\n" 1
 stmt: ASGNP4(acon, reg) "std.l %1, %0\n" 1
-stmt: ASGNF4(addr, reg) "st.s %1, %0\n" 1
 
 stmt: ASGNI4(VREGP, ADDI4(reg, con1)) "inc %0\n"   regop(a,0)
 stmt: ASGNI4(VREGP, ADDU4(reg, con1)) "inc %0\n"   regop(a,0)
@@ -461,6 +454,26 @@ stmt: ARGU4(reg) "push %0\n"
 stmt: ARGI4(reg) "push %0\n"
 stmt: ARGP4(reg) "push %0\n"
 stmt: ARGF4(reg) "push.s %0\n"
+
+reg: CVIF4(reg)         "cvtis %c, %0\n"
+reg: CVFI4(reg)         "cvtsi %c, %0\n"
+
+reg: INDIRF4(addr)      "ld.s %c, %0\n" 4 
+stmt: ASGNF4(addr, reg) "st.s %1, %0\n" 1
+
+reg: NEGF4(reg)         "neg.s %c, %0\n" 3
+reg: ADDF4(reg, reg)    "add.s %c, %0, %1\n" 4
+reg: SUBF4(reg, reg)    "sub.s %c, %0, %1\n" 4
+reg: MULF4(reg, reg)    "mul.s %c, %0, %1\n" 4
+reg: DIVF4(reg, reg)    "div.s %c, %0, %1\n" 4
+reg: LOADF4(reg)        "mov.s %c, %0\n"  move(a)
+
+stmt: NEF4(reg, reg)    "cmp.s %0, %1\nbne %a\n"
+stmt: EQF4(reg, reg)    "cmp.s %0, %1\nbeq %a\n"
+stmt: LTF4(reg, reg)    "cmp.s %0, %1\nblt %a\n"
+stmt: LEF4(reg, reg)    "cmp.s %0, %1\nble %a\n"
+stmt: GEF4(reg, reg)    "cmp.s %0, %1\nbge %a\n"
+stmt: GTF4(reg, reg)    "cmp.s %0, %1\nbgt %a\n"
 
 reg: CALLI4(addr) "jsr %0\naddi %%31, %%31, %a\n" hasargs(a)
 reg: CALLI4(addr) "jsr %0\n"                 1
@@ -487,7 +500,7 @@ stmt: CALLV(acon) "jsrd %0\n"                1
 
 stmt: RETI4(reg)  "# ret\n"
 stmt: RETU4(reg)  "# ret\n"
-stmt: RETF4(reg)  "# ret\n"
+stmt: RETF4(reg) "# ret\n"
 stmt: RETP4(reg)  "# ret\n"
 
 stmt: JUMPV(addr) "jmp %0\n"  1
@@ -495,22 +508,16 @@ stmt: JUMPV(acon) "jmpd %0\n" 1
 
 stmt: NEI4(reg, reg) "cmp %0, %1\nbne %a\n"
 stmt: NEU4(reg, reg) "cmp %0, %1\nbne %a\n"
-stmt: NEF4(reg, reg) "cmp.s %0, %1\nbne %a\n"
 stmt: EQI4(reg, reg) "cmp %0, %1\nbeq %a\n"
 stmt: EQU4(reg, reg) "cmp %0, %1\nbeq %a\n"
-stmt: EQF4(reg, reg) "cmp.s %0, %1\nbeq %a\n"
 stmt: LTI4(reg, reg) "cmp %0, %1\nblt %a\n"
 stmt: LTU4(reg, reg) "cmp %0, %1\nbltu %a\n"
-stmt: LTF4(reg, reg) "cmp.s %0, %1\nblt %a\n"
 stmt: LEI4(reg, reg) "cmp %0, %1\nble %a\n"
 stmt: LEU4(reg, reg) "cmp %0, %1\nbleu %a\n"
-stmt: LEF4(reg, reg) "cmp.s %0, %1\nble %a\n"
 stmt: GEI4(reg, reg) "cmp %0, %1\nbge %a\n"
 stmt: GEU4(reg, reg) "cmp %0, %1\nbgeu %a\n"
-stmt: GEF4(reg, reg) "cmp.s %0, %1\nbge %a\n"
 stmt: GTI4(reg, reg) "cmp %0, %1\nbgt %a\n"
 stmt: GTU4(reg, reg) "cmp %0, %1\nbgtu %a\n"
-stmt: GTF4(reg, reg) "cmp.s %0, %1\nbgt %a\n"
 stmt: LABELV  "%a:\n"
 
 %%
@@ -529,7 +536,7 @@ static void progbeg(int argc, char *argv[]) {
         }
         parseflags(argc, argv);
         for (i = 0; i < 32; i++)
-                freg2[i] = mkreg("%%%d", i, 1, FREG);
+                freg2[i] = mkreg("%%f%d", i, 1, FREG);
         for (i = 0; i < 32; i++)
                 ireg[i]  = mkreg("%%%d", i, 1, IREG);
         freg2w = mkwildcard(freg2);
@@ -760,8 +767,12 @@ static void defaddress(Symbol p) {
 }
 
 static void defstring(int n, char *str) {
-       assert(str[n] == '\0');
-       print(".string \"%s\"\n", str);
+  char *s;
+  if (str[n] == '\0')
+    print(".string \"%s\"\n", str);
+  else
+    for (s = str; s < str + n; s++)
+      print(".byte %d\n", (*s)&0377);
 }
 
 /* OK */
