@@ -417,7 +417,7 @@ reg: INDIRI4(acon)     "ldd.l %c, %0\n" 4
 reg: INDIRU4(acon)     "ldd.l %c, %0\n" 4
 reg: INDIRP4(acon)     "ldd.l %c, %0\n" 4
 
-reg: addr              "ld.l %c, %0\n" 4
+reg: addr              "lda %c, %0\n" 4
 reg: acon              "ldd.l %c, %0\n" 4
 reg: ADDRGP4	       "ldi %c, %a\n"  3
 
@@ -768,11 +768,8 @@ static void defaddress(Symbol p) {
 
 static void defstring(int n, char *str) {
   char *s;
-  if (str[n] == '\0')
-    print(".string \"%s\"\n", str);
-  else
-    for (s = str; s < str + n; s++)
-      print(".byte %d\n", (*s)&0377);
+  for (s = str; s < str + n; s++)
+    print(".byte %d\n", (*s)&0377);
 }
 
 /* OK */
