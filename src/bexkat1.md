@@ -651,7 +651,7 @@ static void local(Symbol p) {
         if (askregvar(p, rmap(ttob(p->type))) == 0) {
                 assert(p->sclass == AUTO);
                 offset = roundup(offset + p->type->size,
-                            p->type->align < 2 ? 2 : p->type->align);
+                            p->type->align < 4 ? 4 : p->type->align);
                 p->x.offset = -offset;
                 
                 p->x.name = stringd(-offset);
@@ -662,7 +662,7 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
         int i;
 
 	globalend();
-	print(".align 2\n");
+	print(".align 4\n");
 	print(".type %s,@function\n", f->x.name);
 	print("%s:\n", f->x.name);
 
@@ -707,7 +707,7 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
                 offset = roundup(offset, q->type->align);
                 p->x.offset = q->x.offset = offset;
                 p->x.name = q->x.name = stringf("%d", offset);
-                offset += roundup(q->type->size, 2);
+                offset += roundup(q->type->size, 4);
         }
         assert(caller[i] == 0);
 
@@ -821,7 +821,7 @@ static void address(Symbol q, Symbol p, long n) {
 /* TODO */
 static void global(Symbol p) {
         globalend();
-        print(".align %d\n", p->type->align > 2 ? 2 : p->type->align);
+        print(".align %d\n", p->type->align > 4 ? 4 : p->type->align);
         if (!p->generated) {
                 print(".type %s,@%s\n", p->x.name,
                         isfunc(p->type) ? "function" : "object");
@@ -906,7 +906,7 @@ Interface bexkat1IR = {
         4, 4, 1,  /* long double */
         4, 4, 0,  /* T * */
         0, 1, 0,  /* struct */
-        0,      /* little_endian */
+        1,      /* little_endian */
         0,  /* mulops_calls */
         1,  /* wants_callb */
         0,  /* wants_argb */
@@ -933,7 +933,7 @@ Interface bexkat1IR = {
         space,
         0, 0, 0, stabinit, stabline, stabsym, 0,
         {
-                2,      /* max_unaligned_load */
+                4,      /* max_unaligned_load */
                 rmap,
                 blkfetch, blkstore, blkloop,
                 _label,

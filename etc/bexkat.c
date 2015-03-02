@@ -14,9 +14,9 @@ char *cpp[] = { "/usr/bin/cpp", "-D__STRICT_ANSI__", "-Dunix",
 	"$1", "$2", "$3", 0 };
 char *include[] = {"-I" LCCDIR "include", 0 };
 char *com[] = {LCCDIR "rcc", "-target=bexkat1/bexkat1000", "$1", "$2", "$3", 0 };
-char *as[] = { "/usr/local/bin/bexkat1-elf-as",  "-o", "$3", "$1", "$2", 0 };
+char *as[] = { "/usr/local/bin/bexkat1-elf-as", "-EL", "-o", "$3", "$1", "$2", 0 };
 char *ld[] = {
-	/*  0 */ "/usr/local/bin/bexkat1-elf-ld", 
+	/*  0 */ "/usr/local/bin/bexkat1-elf-ld", "-EL", 
                  "$1", "$2",
 	/* 12 */ "-L" LCCDIR,
 	0 };
