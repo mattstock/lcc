@@ -906,7 +906,7 @@ Interface bexkat1IR = {
         4, 4, 1,  /* long double */
         4, 4, 0,  /* T * */
         0, 1, 0,  /* struct */
-        1,      /* little_endian */
+        0,      /* little_endian */
         0,  /* mulops_calls */
         1,  /* wants_callb */
         0,  /* wants_argb */
