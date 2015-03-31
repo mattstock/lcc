@@ -711,7 +711,7 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
         }
         assert(caller[i] == 0);
 
-        framesize = roundup(maxoffset, 2);
+        framesize = roundup(maxoffset, 4);
         if (framesize > 0) {
 	  print("subi %%31, %%31, %d\n", framesize);
         }
