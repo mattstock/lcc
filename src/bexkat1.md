@@ -475,27 +475,27 @@ stmt: LEF4(reg, reg)    "cmp.s %0, %1\nble %a\n"
 stmt: GEF4(reg, reg)    "cmp.s %0, %1\nbge %a\n"
 stmt: GTF4(reg, reg)    "cmp.s %0, %1\nbgt %a\n"
 
-reg: CALLI4(addr) "jsr %0\naddi %%31, %%31, %a\n" hasargs(a)
+reg: CALLI4(addr) "jsr %0\naddsp %a\n" hasargs(a)
 reg: CALLI4(addr) "jsr %0\n"                 1
-reg: CALLU4(addr) "jsr %0\naddi %%31, %%31, %a\n" hasargs(a)
+reg: CALLU4(addr) "jsr %0\naddsp %a\n" hasargs(a)
 reg: CALLU4(addr) "jsr %0\n"                 1
-reg: CALLP4(addr) "jsr %0\naddi %%31, %%31, %a\n" hasargs(a)
+reg: CALLP4(addr) "jsr %0\naddsp %a\n" hasargs(a)
 reg: CALLP4(addr) "jsr %0\n"                 1
-reg: CALLF4(addr) "jsr %0\naddi %%31, %%31, %a\n" hasargs(a)
+reg: CALLF4(addr) "jsr %0\naddsp %a\n" hasargs(a)
 reg: CALLF4(addr) "jsr %0\n"                 1
 
-reg: CALLI4(acon) "jsrd %0\naddi %%31, %%31, %a\n" hasargs(a)
+reg: CALLI4(acon) "jsrd %0\naddsp %a\n" hasargs(a)
 reg: CALLI4(acon) "jsrd %0\n"                 1
-reg: CALLU4(acon) "jsrd %0\naddi %%31, %%31, %a\n" hasargs(a)
+reg: CALLU4(acon) "jsrd %0\naddsp %a\n" hasargs(a)
 reg: CALLU4(acon) "jsrd %0\n"                 1
-reg: CALLP4(acon) "jsrd %0\naddi %%31, %%31, %a\n" hasargs(a)
+reg: CALLP4(acon) "jsrd %0\naddsp %a\n" hasargs(a)
 reg: CALLP4(acon) "jsrd %0\n"                 1
-reg: CALLF4(acon) "jsrd %0\naddi %%31, %%31, %a\n" hasargs(a)
+reg: CALLF4(acon) "jsrd %0\naddsp %a\n" hasargs(a)
 reg: CALLF4(acon) "jsrd %0\n"                 1
 
-stmt: CALLV(addr) "jsr %0\naddi %%31, %%31, %a\n" hasargs(a)
+stmt: CALLV(addr) "jsr %0\naddsp %a\n" hasargs(a)
 stmt: CALLV(addr) "jsr %0\n"                 1
-stmt: CALLV(acon) "jsrd %0\naddi %%31, %%31, %a\n" hasargs(a)
+stmt: CALLV(acon) "jsrd %0\naddsp %a\n" hasargs(a)
 stmt: CALLV(acon) "jsrd %0\n"                1
 
 stmt: RETI4(reg)  "# ret\n"
@@ -543,6 +543,7 @@ static void progbeg(int argc, char *argv[]) {
         iregw = mkwildcard(ireg);
         tmask[IREG] = INTTMP; tmask[FREG] = FLTTMP;
         vmask[IREG] = INTVAR; vmask[FREG] = FLTVAR;
+	print("ldsp 0x00004000\n");
 }
 
 static Symbol rmap(int opk) {
@@ -697,7 +698,7 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
 	    offset += 4;
           }
 	print("push %%30\n");
-	print("mov %%30, %%31\n");
+	print("movfs %%30\n");
 
 	// Pass 2: Assign the argument offsets in the stack
         for (i = 0; callee[i]; i++) {
@@ -713,12 +714,12 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
 
         framesize = roundup(maxoffset, 4);
         if (framesize > 0) {
-	  print("subi %%31, %%31, %d\n", framesize);
+	  print("subsp %d\n", framesize);
         }
 
         emitcode();
 
-	print("mov %%31, %%30\n");
+	print("movts %%30\n");
 	print("pop %%30\n");
 	for (i=14; i >= 0; i--)
 	  if (usedmask[FREG] & (1 << i))
