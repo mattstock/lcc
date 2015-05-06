@@ -543,7 +543,6 @@ static void progbeg(int argc, char *argv[]) {
         iregw = mkwildcard(ireg);
         tmask[IREG] = INTTMP; tmask[FREG] = FLTTMP;
         vmask[IREG] = INTVAR; vmask[FREG] = FLTVAR;
-	print("ldsp 0x00004000\n");
 }
 
 static Symbol rmap(int opk) {
