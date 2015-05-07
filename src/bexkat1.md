@@ -370,7 +370,7 @@ reg: BXORI4(reg, con16) "xori %c, %0, %1\n" 5
 reg: BXORI4(reg, reg)   "xor %c, %0, %1\n" 4 
 reg: BXORU4(reg, con16) "xori %c, %0, %1\n" 5
 reg: BXORU4(reg, reg)   "xor %c, %0, %1\n" 4
-reg: BORI4(reg, con16)  "ori %c %0, %1\n"   5
+reg: BORI4(reg, con16)  "ori %c, %0, %1\n"   5
 reg: BORI4(reg, reg)    "or %c, %0, %1\n"  4
 reg: BORU4(reg, con16)  "ori %c, %0, %1\n"  5
 reg: BORU4(reg, reg)    "or %c, %0, %1\n"  4
